@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>密码管理器测试页面</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #D75A8E 0%, #B84A7A 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      padding: 40px;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #D75A8E;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #D75A8E;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #C85080;
+    }
+
+    .info {
+      margin-top: 30px;
+      padding: 15px;
+      background: #FDF2F7;
+      border-left: 4px solid #D75A8E;
+      border-radius: 4px;
+    }
+
+    .info h3 {
+      font-size: 14px;
+      color: #D75A8E;
+      margin-bottom: 8px;
+    }
+
+    .info ol {
+      margin-left: 20px;
+      font-size: 13px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .success {
+      background: #d4edda;
+      border-left-color: #28a745;
+      color: #155724;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 登录测试</h1>
+    <p class="subtitle">测试密码管理器插件</p>
+
+    <form id="loginForm" action="success.html" method="get">
+      <div class="form-group">
+        <label for="email">邮箱地址</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="your@email.com"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password">密码</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="请输入密码"
+          required
+        >
+      </div>
+
+      <button type="submit">登录</button>
+    </form>
+
+    <div class="info">
+      <h3>📋 测试步骤</h3>
+      <ol>
+        <li>在浏览器中打开这个页面（file://... 或本地服务器）</li>
+        <li>输入任意邮箱和密码</li>
+        <li>点击"登录"按钮</li>
+        <li>页面跳转后，应该看到保存密码的提示框</li>
+        <li>打开浏览器控制台（F12）查看日志</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    // Add client-side logging
+    const form = document.getElementById('loginForm');
+    form.addEventListener('submit', (e) => {
+      console.log('[测试页面] 表单提交事件触发');
+    });
+  </script>
+</body>
+</html>
