@@ -3,8 +3,15 @@ let searchInput, passwordList, addBtn, modal, modalTitle;
 let passwordForm, cancelBtn, websiteInput, usernameInput, passwordInput;
 let exportBtn, importBtn, importFileInput;
 
+// Master password elements
+let masterPasswordBtn, masterPasswordBtnText;
+let masterPasswordModal, masterPasswordModalTitle, masterPasswordStatus;
+let masterPasswordForm, currentMasterPasswordInput, newMasterPasswordInput, confirmMasterPasswordInput;
+let masterPasswordCancelBtn, removeMasterPasswordBtn;
+
 let passwords = [];
 let editingId = null;
+let masterPasswordHash = null; // Store master password (currently plain text, encryption TODO)
 
 // Initialize immediately (script is at bottom of body)
 (function init() {
@@ -23,8 +30,22 @@ let editingId = null;
   importBtn = document.getElementById('importBtn');
   importFileInput = document.getElementById('importFileInput');
 
+  // Master password elements
+  masterPasswordBtn = document.getElementById('masterPasswordBtn');
+  masterPasswordBtnText = document.getElementById('masterPasswordBtnText');
+  masterPasswordModal = document.getElementById('masterPasswordModal');
+  masterPasswordModalTitle = document.getElementById('masterPasswordModalTitle');
+  masterPasswordStatus = document.getElementById('masterPasswordStatus');
+  masterPasswordForm = document.getElementById('masterPasswordForm');
+  currentMasterPasswordInput = document.getElementById('currentMasterPassword');
+  newMasterPasswordInput = document.getElementById('newMasterPassword');
+  confirmMasterPasswordInput = document.getElementById('confirmMasterPassword');
+  masterPasswordCancelBtn = document.getElementById('masterPasswordCancelBtn');
+  removeMasterPasswordBtn = document.getElementById('removeMasterPasswordBtn');
+
   setupEventListeners();
   loadPasswords();
+  loadMasterPassword();
 })();
 
 // Setup event listeners
@@ -37,9 +58,20 @@ function setupEventListeners() {
   importBtn.addEventListener('click', () => importFileInput.click());
   importFileInput.addEventListener('change', handleImport);
 
+  // Master password event listeners
+  masterPasswordBtn.addEventListener('click', openMasterPasswordModal);
+  masterPasswordCancelBtn.addEventListener('click', closeMasterPasswordModal);
+  masterPasswordForm.addEventListener('submit', handleMasterPasswordSave);
+  removeMasterPasswordBtn.addEventListener('click', handleRemoveMasterPassword);
+
   // Close modal on outside click
   modal.addEventListener('click', (e) => {
     if (e.target === modal) closeModal();
+  });
+
+  // Close master password modal on outside click
+  masterPasswordModal.addEventListener('click', (e) => {
+    if (e.target === masterPasswordModal) closeMasterPasswordModal();
   });
 
   // Event delegation for password list (more efficient)
@@ -249,6 +281,23 @@ function generateId() {
 // Export passwords to CSV file
 async function exportPasswords() {
   try {
+    // Check if master password is set
+    if (masterPasswordHash) {
+      const inputPassword = prompt('请输入主密码以导出密码数据：');
+
+      if (!inputPassword) {
+        showToast('已取消导出');
+        return;
+      }
+
+      // Verify master password
+      // TODO: Use proper password hashing/verification
+      if (inputPassword !== masterPasswordHash) {
+        showToast('主密码不正确，导出失败');
+        return;
+      }
+    }
+
     const result = await chrome.storage.local.get(['passwords']);
     const passwords = result.passwords || [];
 
@@ -432,4 +481,148 @@ function parseCSVLine(line) {
   fields.push(currentField);
 
   return fields;
+}
+
+// ==================== Master Password Functions ====================
+
+// Load master password from storage
+async function loadMasterPassword() {
+  try {
+    const result = await chrome.storage.local.get(['masterPassword']);
+    masterPasswordHash = result.masterPassword || null;
+    updateMasterPasswordButton();
+  } catch (error) {
+    console.error('Error loading master password:', error);
+  }
+}
+
+// Update master password button text based on status
+function updateMasterPasswordButton() {
+  if (masterPasswordHash) {
+    masterPasswordBtnText.textContent = '管理主密码';
+  } else {
+    masterPasswordBtnText.textContent = '设置主密码';
+  }
+}
+
+// Open master password modal
+function openMasterPasswordModal() {
+  // Update modal based on whether master password exists
+  if (masterPasswordHash) {
+    masterPasswordModalTitle.textContent = '管理主密码';
+    masterPasswordStatus.className = 'master-password-status has-password';
+    masterPasswordStatus.innerHTML = '✓ 已设置主密码 - 您可以修改或移除主密码';
+    currentMasterPasswordInput.required = true;
+    removeMasterPasswordBtn.style.display = 'block';
+  } else {
+    masterPasswordModalTitle.textContent = '设置主密码';
+    masterPasswordStatus.className = 'master-password-status no-password';
+    masterPasswordStatus.innerHTML = '⚠️ 尚未设置主密码 - 设置主密码以保护您的密码数据';
+    currentMasterPasswordInput.required = false;
+    removeMasterPasswordBtn.style.display = 'none';
+  }
+
+  // Reset form
+  masterPasswordForm.reset();
+
+  // Show modal
+  masterPasswordModal.classList.add('active');
+}
+
+// Close master password modal
+function closeMasterPasswordModal() {
+  masterPasswordModal.classList.remove('active');
+  masterPasswordForm.reset();
+}
+
+// Handle master password save
+async function handleMasterPasswordSave(e) {
+  e.preventDefault();
+
+  const currentPassword = currentMasterPasswordInput.value;
+  const newPassword = newMasterPasswordInput.value;
+  const confirmPassword = confirmMasterPasswordInput.value;
+
+  // Validate new password and confirmation match
+  if (newPassword !== confirmPassword) {
+    showToast('两次输入的密码不一致');
+    return;
+  }
+
+  // Validate password length
+  if (newPassword.length < 6) {
+    showToast('主密码至少需要 6 个字符');
+    return;
+  }
+
+  // If master password already exists, verify current password
+  if (masterPasswordHash) {
+    if (!currentPassword) {
+      showToast('请输入当前主密码');
+      return;
+    }
+
+    // TODO: Add proper password hashing/verification
+    // For now, just plain text comparison (NOT SECURE)
+    if (currentPassword !== masterPasswordHash) {
+      showToast('当前主密码不正确');
+      return;
+    }
+  }
+
+  try {
+    // TODO: Replace with proper password hashing
+    // For now, storing plain text (NOT SECURE - just a placeholder)
+    await chrome.storage.local.set({ masterPassword: newPassword });
+
+    masterPasswordHash = newPassword;
+    updateMasterPasswordButton();
+
+    showToast('主密码设置成功');
+    closeMasterPasswordModal();
+
+    console.log('⚠️ WARNING: Master password is currently stored in plain text. Encryption will be implemented in the next phase.');
+  } catch (error) {
+    console.error('Error saving master password:', error);
+    showToast('保存失败，请重试');
+  }
+}
+
+// Handle remove master password
+async function handleRemoveMasterPassword() {
+  const currentPassword = currentMasterPasswordInput.value;
+
+  if (!currentPassword) {
+    showToast('请输入当前主密码以确认删除');
+    return;
+  }
+
+  // TODO: Add proper password verification
+  // For now, just plain text comparison (NOT SECURE)
+  if (currentPassword !== masterPasswordHash) {
+    showToast('当前主密码不正确');
+    return;
+  }
+
+  const confirmed = confirm(
+    '确定要移除主密码吗？\n\n' +
+    '移除后，您的密码数据将不再受主密码保护。\n' +
+    '（注意：当前版本密码未加密，移除主密码不会影响已保存的密码）'
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    await chrome.storage.local.remove('masterPassword');
+    masterPasswordHash = null;
+    updateMasterPasswordButton();
+
+    showToast('主密码已移除');
+    closeMasterPasswordModal();
+  } catch (error) {
+    console.error('Error removing master password:', error);
+    showToast('移除失败，请重试');
+  }
 }

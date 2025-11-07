@@ -18,7 +18,7 @@ body {
 }
 
 header {
-  background: linear-gradient(135deg, #D75A8E 0%, #B84A7A 100%);
+  background: #fbb2d3;
   color: white;
   padding: 16px;
   text-align: center;
@@ -124,7 +124,7 @@ header h1 {
 .add-btn {
   width: 100%;
   padding: 12px;
-  background: #D75A8E;
+  background: #fbb2d3;
   color: white;
   border: none;
   border-radius: 6px;
@@ -136,7 +136,7 @@ header h1 {
 }
 
 .add-btn:hover {
-  background: #C85080;
+  background: #f99cc4;
 }
 
 /* Import/Export container */
@@ -158,21 +158,32 @@ header h1 {
 }
 
 .export-btn {
-  background: #6c5ce7;
+  background: #ff9f43;
   color: white;
 }
 
 .export-btn:hover {
-  background: #5f4fd1;
+  background: #ee8c2e;
 }
 
 .import-btn {
-  background: #00b894;
+  background: #74b9ff;
   color: white;
 }
 
 .import-btn:hover {
-  background: #00a383;
+  background: #5fa8f5;
+}
+
+.master-password-btn {
+  width: 100%;
+  background: #fd79a8;
+  color: white;
+  margin-top: 8px;
+}
+
+.master-password-btn:hover {
+  background: #e66590;
 }
 
 /* Modal */
@@ -263,4 +274,65 @@ header h1 {
 
 .btn-save:hover {
   background: #C85080;
+}
+
+.btn-danger {
+  background: #ff6b6b;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #ee5a52;
+}
+
+/* Master Password Specific Styles */
+.master-password-status {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.master-password-status.has-password {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.master-password-status.no-password {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.master-password-warning {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  padding: 12px;
+  margin: 16px 0;
+  font-size: 12px;
+  color: #856404;
+}
+
+.master-password-warning strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.master-password-warning ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.master-password-warning li {
+  margin-bottom: 4px;
+}
+
+.form-hint {
+  display: block;
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
 }

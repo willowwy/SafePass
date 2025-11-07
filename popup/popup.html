@@ -32,6 +32,11 @@
         <button class="action-btn import-btn" id="importBtn">导入密码</button>
       </div>
       <input type="file" id="importFileInput" accept=".csv" style="display: none;">
+
+      <!-- 主密码设置按钮 -->
+      <button class="action-btn master-password-btn" id="masterPasswordBtn">
+        <span id="masterPasswordBtnText">设置主密码</span>
+      </button>
     </div>
 
     <!-- 添加/编辑表单（默认隐藏） -->
@@ -53,6 +58,67 @@
           </div>
           <div class="form-actions">
             <button type="button" class="btn-cancel" id="cancelBtn">取消</button>
+            <button type="submit" class="btn-save">保存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 主密码设置模态框 -->
+    <div class="modal" id="masterPasswordModal">
+      <div class="modal-content">
+        <h2 id="masterPasswordModalTitle">设置主密码</h2>
+
+        <div id="masterPasswordStatus" class="master-password-status">
+          <!-- 显示当前主密码状态 -->
+        </div>
+
+        <form id="masterPasswordForm">
+          <div class="form-group">
+            <label for="currentMasterPassword">当前主密码</label>
+            <input
+              type="password"
+              id="currentMasterPassword"
+              placeholder="如果已设置，请输入当前主密码"
+              autocomplete="current-password">
+            <small class="form-hint">首次设置时留空</small>
+          </div>
+
+          <div class="form-group">
+            <label for="newMasterPassword">新主密码</label>
+            <input
+              type="password"
+              id="newMasterPassword"
+              placeholder="输入新的主密码"
+              required
+              autocomplete="new-password"
+              minlength="6">
+            <small class="form-hint">至少 6 个字符</small>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmMasterPassword">确认主密码</label>
+            <input
+              type="password"
+              id="confirmMasterPassword"
+              placeholder="再次输入主密码"
+              required
+              autocomplete="new-password"
+              minlength="6">
+          </div>
+
+          <div class="master-password-warning">
+            <strong>⚠️ 重要提示：</strong>
+            <ul>
+              <li>主密码用于保护您的所有密码</li>
+              <li>请务必记住主密码，忘记后无法恢复</li>
+              <li>建议使用强密码（包含字母、数字、符号）</li>
+            </ul>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" id="masterPasswordCancelBtn">取消</button>
+            <button type="button" class="btn-danger" id="removeMasterPasswordBtn" style="display: none;">移除主密码</button>
             <button type="submit" class="btn-save">保存</button>
           </div>
         </form>

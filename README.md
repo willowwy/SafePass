@@ -1,15 +1,17 @@
 # Local Password Manager - Browser Extension
 
-A simple local password manager browser extension that supports automatic password saving and autofill.
+A Chrome browser extension for local password management with intelligent autofill and master password protection.
 
 ## Features
 
-- Automatic login form detection
-- Prompt to save password when submitting forms
-- Autofill saved passwords
-- Local password storage (chrome.storage.local)
-- Clean management interface
-- Password export/import functionality (CSV format)
+- **Smart Password Detection**: Automatically detects login forms and saves credentials
+- **Intelligent Save Prompts**: Distinguishes between new accounts and password updates
+- **Enhanced Autofill**: Works on both username/email and password fields
+- **Master Password Protection**: Optional master password to protect password exports
+- **Multiple Accounts Support**: Save and manage multiple accounts per website
+- **Password Import/Export**: Backup and restore passwords via CSV files
+- **Clean Interface**: Modern, user-friendly password management interface
+- **Error Recovery**: Automatic handling of extension reloads with user notifications
 
 ## Project Structure
 
@@ -49,15 +51,27 @@ password-manager-extension/
 
 1. Visit any website that requires login
 2. Enter username and password
-3. After submitting the form, a prompt will automatically appear asking if you want to save
-4. Click "Save" to save the password
+3. Submit the login form
+4. A smart prompt will appear:
+   - **New Account**: Shows "保存新账户?" if this is a new username for the site
+   - **Update Password**: Shows "更新密码?" if the username exists but password changed
+   - Displays masked password comparison for updates (e.g., `p••••••d`)
+5. Click "Save" or "Update" to save the credentials
+
+**Note**: No prompt appears if you log in with the same saved credentials.
 
 ### Autofill
 
 1. Visit a website where you have saved passwords
-2. Click on the password input field
-3. A list of saved accounts for this website will be displayed
-4. Click to select an account, and username and password will be automatically filled
+2. Click on **either** the username/email field **or** the password field
+3. A dropdown list of saved accounts for this website will appear
+4. Click to select an account
+5. Both username and password will be automatically filled
+
+**Enhanced Features**:
+- Works on dynamically loaded forms (SPAs like GitHub)
+- Automatically detects common username field patterns
+- Multiple retry mechanism for slow-loading pages
 
 ### Manage Passwords
 
@@ -69,14 +83,31 @@ password-manager-extension/
    - Delete unwanted passwords
    - Manually add passwords
 
+### Master Password
+
+Set up a master password to protect your password exports:
+
+1. Click the extension icon in the browser toolbar
+2. Click the "设置主密码" (Set Master Password) button at the bottom
+3. Enter and confirm your master password (minimum 6 characters)
+4. Click "Save"
+
+**Managing Master Password**:
+- After setting, the button changes to "管理主密码" (Manage Master Password)
+- You can change or remove your master password at any time
+- Requires current password verification for changes
+
+⚠️ **Important**: The master password currently protects exports only. Full password encryption will be added in future updates.
+
 ### Export/Import Passwords
 
 #### Export
 1. Click the extension icon in the browser toolbar
 2. Click the "导出密码" (Export Passwords) button
-3. A CSV file will be downloaded with format: `passwords-backup-YYYY-MM-DD.csv`
-4. The exported file includes columns: Website, Username, Password, Created Date, ID
-5. Can be opened in Excel, Google Sheets, or any CSV-compatible application
+3. **If master password is set**: Enter your master password when prompted
+4. A CSV file will be downloaded with format: `passwords-backup-YYYY-MM-DD.csv`
+5. The exported file includes columns: Website, Username, Password, Created Date, ID
+6. Can be opened in Excel, Google Sheets, or any CSV-compatible application
 
 #### Import
 1. Click the extension icon in the browser toolbar
@@ -95,22 +126,46 @@ https://example.com,user@email.com,mypassword,2025-10-31T12:00:00.000Z,abc123
 
 ## Important Notes
 
-⚠️ **This is a basic version with unencrypted password storage**
+⚠️ **Security Status**
 
-Currently passwords are stored in plain text in the browser's local storage. Future versions should add:
-- Master password functionality
-- Encrypted password storage (Web Crypto API)
-- Password strength detection
-- Encrypted export/import with password protection
+**Current Implementation**:
+- ✅ Master password framework implemented (protects exports)
+- ✅ Smart password detection and update prompts
+- ✅ Enhanced autofill with username field support
+- ⚠️ Passwords stored in plain text in browser's local storage
+- ⚠️ Master password stored in plain text (encryption TODO)
 
-## Future Development Plans
+**Upcoming Security Enhancements**:
+- Password encryption using Web Crypto API
+- Encrypted master password storage (hashing)
+- Master password required for accessing all passwords
+- Auto-lock functionality
+- Password strength indicator
 
-- [ ] Add password encryption
-- [ ] Implement master password verification
-- [ ] Add password generator
-- [x] Support password export/import
-- [ ] Optimize domain matching algorithm
-- [ ] Add encrypted export with password protection
+## Changelog & Roadmap
+
+### ✅ Completed
+- [x] Automatic password save and autofill
+- [x] Password export/import (CSV format)
+- [x] Smart detection: new account vs password update
+- [x] Enhanced autofill for username/email fields
+- [x] Master password framework (protects exports)
+- [x] Multiple accounts per website support
+- [x] Extension context error handling
+- [x] Dynamic form detection (SPA support)
+
+### 🚧 In Progress
+- [ ] Password encryption with Web Crypto API
+- [ ] Secure master password hashing (PBKDF2/Argon2)
+- [ ] Master password unlock screen on startup
+
+### 📋 Future Plans
+- [ ] Password strength indicator and generator
+- [ ] Auto-lock after inactivity
+- [ ] Encrypted password storage
+- [ ] Browser sync support (optional)
+- [ ] Password breach detection
+- [ ] Two-factor authentication support
 
 ## Tech Stack
 
