@@ -167,22 +167,6 @@ https://example.com,user@email.com,mypassword,2025-10-31T12:00:00.000Z,abc123
 - [ ] Password breach detection
 - [ ] Two-factor authentication support
 
-## Tech Stack
-
-- Manifest V3
-- Chrome Extension APIs
-- Vanilla JavaScript
-- Chrome Storage API
-
-## Development Notes
-
-This is a minimalist implementation suitable for learning and extension. Main file functions:
-
-- **manifest.json**: Defines extension permissions and configuration
-- **popup.js**: Management interface logic
-- **background.js**: Background message handling
-- **content.js**: Web form monitoring and autofill
-
 ## License
 
 MIT License

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "密码管理器",
+  "name": "SafePass",
   "version": "1.0.0",
   "description": "本地密码管理器，自动保存和填充密码",
 
