@@ -9,6 +9,7 @@ A simple local password manager browser extension that supports automatic passwo
 - Autofill saved passwords
 - Local password storage (chrome.storage.local)
 - Clean management interface
+- Password export/import functionality (CSV format)
 
 ## Project Structure
 
@@ -68,6 +69,30 @@ password-manager-extension/
    - Delete unwanted passwords
    - Manually add passwords
 
+### Export/Import Passwords
+
+#### Export
+1. Click the extension icon in the browser toolbar
+2. Click the "导出密码" (Export Passwords) button
+3. A CSV file will be downloaded with format: `passwords-backup-YYYY-MM-DD.csv`
+4. The exported file includes columns: Website, Username, Password, Created Date, ID
+5. Can be opened in Excel, Google Sheets, or any CSV-compatible application
+
+#### Import
+1. Click the extension icon in the browser toolbar
+2. Click the "导入密码" (Import Passwords) button
+3. Select a previously exported CSV file
+4. Choose your import strategy:
+   - Click "确定" (OK) to merge with existing passwords (only adds new passwords by ID)
+   - Click "取消" (Cancel) to replace all existing passwords with imported ones
+5. A confirmation message will show how many passwords were imported
+
+**CSV File Format:**
+```
+Website,Username,Password,Created Date,ID
+https://example.com,user@email.com,mypassword,2025-10-31T12:00:00.000Z,abc123
+```
+
 ## Important Notes
 
 ⚠️ **This is a basic version with unencrypted password storage**
@@ -75,17 +100,17 @@ password-manager-extension/
 Currently passwords are stored in plain text in the browser's local storage. Future versions should add:
 - Master password functionality
 - Encrypted password storage (Web Crypto API)
-- Export/Import functionality
 - Password strength detection
+- Encrypted export/import with password protection
 
 ## Future Development Plans
 
 - [ ] Add password encryption
 - [ ] Implement master password verification
 - [ ] Add password generator
-- [ ] Support password export/import
+- [x] Support password export/import
 - [ ] Optimize domain matching algorithm
-- [ ] Add extension icons
+- [ ] Add encrypted export with password protection
 
 ## Tech Stack
 

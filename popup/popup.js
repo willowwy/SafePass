@@ -1,6 +1,7 @@
 // DOM elements - cached for performance
 let searchInput, passwordList, addBtn, modal, modalTitle;
 let passwordForm, cancelBtn, websiteInput, usernameInput, passwordInput;
+let exportBtn, importBtn, importFileInput;
 
 let passwords = [];
 let editingId = null;
@@ -18,6 +19,9 @@ let editingId = null;
   websiteInput = document.getElementById('website');
   usernameInput = document.getElementById('username');
   passwordInput = document.getElementById('password');
+  exportBtn = document.getElementById('exportBtn');
+  importBtn = document.getElementById('importBtn');
+  importFileInput = document.getElementById('importFileInput');
 
   setupEventListeners();
   loadPasswords();
@@ -29,6 +33,9 @@ function setupEventListeners() {
   cancelBtn.addEventListener('click', closeModal);
   passwordForm.addEventListener('submit', handleSave);
   searchInput.addEventListener('input', handleSearch);
+  exportBtn.addEventListener('click', exportPasswords);
+  importBtn.addEventListener('click', () => importFileInput.click());
+  importFileInput.addEventListener('change', handleImport);
 
   // Close modal on outside click
   modal.addEventListener('click', (e) => {
@@ -237,4 +244,192 @@ function showToast(message) {
 // Generate unique ID
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+// Export passwords to CSV file
+async function exportPasswords() {
+  try {
+    const result = await chrome.storage.local.get(['passwords']);
+    const passwords = result.passwords || [];
+
+    if (passwords.length === 0) {
+      showToast('没有可导出的密码');
+      return;
+    }
+
+    // Create CSV content
+    const headers = ['Website', 'Username', 'Password', 'Created Date', 'ID'];
+    const csvRows = [headers.join(',')];
+
+    // Add each password as a row
+    passwords.forEach(p => {
+      const row = [
+        escapeCSV(p.url || ''),
+        escapeCSV(p.username || ''),
+        escapeCSV(p.password || ''),
+        escapeCSV(p.createdAt || ''),
+        escapeCSV(p.id || '')
+      ];
+      csvRows.push(row.join(','));
+    });
+
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+
+    // Create download link
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `passwords-backup-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+
+    // Cleanup
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+
+    showToast(`成功导出 ${passwords.length} 个密码`);
+  } catch (error) {
+    console.error('Export error:', error);
+    showToast('导出失败，请重试');
+  }
+}
+
+// Escape CSV fields (handle commas, quotes, newlines)
+function escapeCSV(field) {
+  if (field == null) return '';
+  const str = String(field);
+  // If field contains comma, quote, or newline, wrap in quotes and escape quotes
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+// Import passwords from CSV file
+async function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Reset file input
+  e.target.value = '';
+
+  try {
+    const text = await file.text();
+    const validPasswords = parseCSV(text);
+
+    if (validPasswords.length === 0) {
+      showToast('文件中没有有效的密码数据');
+      return;
+    }
+
+    // Ask user for merge strategy
+    const shouldMerge = confirm(
+      `发现 ${validPasswords.length} 个密码\n\n` +
+      `点击"确定"合并到现有密码\n` +
+      `点击"取消"替换所有现有密码`
+    );
+
+    let finalPasswords;
+    if (shouldMerge) {
+      // Merge: Add imported passwords that don't exist (by ID)
+      const result = await chrome.storage.local.get(['passwords']);
+      const existingPasswords = result.passwords || [];
+      const existingIds = new Set(existingPasswords.map(p => p.id));
+
+      const newPasswords = validPasswords.filter(p => !existingIds.has(p.id));
+      finalPasswords = [...existingPasswords, ...newPasswords];
+
+      showToast(`成功导入 ${newPasswords.length} 个新密码`);
+    } else {
+      // Replace all
+      finalPasswords = validPasswords;
+      showToast(`成功导入 ${validPasswords.length} 个密码`);
+    }
+
+    // Save to storage
+    await chrome.storage.local.set({ passwords: finalPasswords });
+
+    // Reload display
+    passwords = finalPasswords;
+    renderPasswordList(passwords);
+
+  } catch (error) {
+    console.error('Import error:', error);
+    showToast('导入失败，请检查文件格式');
+  }
+}
+
+// Parse CSV file and convert to password objects
+function parseCSV(csvText) {
+  const lines = csvText.split('\n').filter(line => line.trim());
+  if (lines.length < 2) {
+    throw new Error('CSV文件为空或格式不正确');
+  }
+
+  // Skip header row
+  const dataLines = lines.slice(1);
+  const passwords = [];
+
+  dataLines.forEach((line, index) => {
+    try {
+      const fields = parseCSVLine(line);
+
+      // Expected format: Website, Username, Password, Created Date, ID
+      if (fields.length >= 3) {
+        const password = {
+          url: fields[0] || '',
+          username: fields[1] || '',
+          password: fields[2] || '',
+          createdAt: fields[3] || new Date().toISOString(),
+          id: fields[4] || generateId()
+        };
+
+        // Validate required fields
+        if (password.url && password.username && password.password) {
+          passwords.push(password);
+        }
+      }
+    } catch (error) {
+      console.warn(`Skipping line ${index + 2}: ${error.message}`);
+    }
+  });
+
+  return passwords;
+}
+
+// Parse a single CSV line (handle quoted fields)
+function parseCSVLine(line) {
+  const fields = [];
+  let currentField = '';
+  let insideQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+
+    if (char === '"') {
+      if (insideQuotes && nextChar === '"') {
+        // Escaped quote
+        currentField += '"';
+        i++; // Skip next quote
+      } else {
+        // Toggle quote state
+        insideQuotes = !insideQuotes;
+      }
+    } else if (char === ',' && !insideQuotes) {
+      // Field separator
+      fields.push(currentField);
+      currentField = '';
+    } else {
+      currentField += char;
+    }
+  }
+
+  // Add last field
+  fields.push(currentField);
+
+  return fields;
 }

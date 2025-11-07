@@ -132,10 +132,47 @@ header h1 {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  margin-bottom: 8px;
 }
 
 .add-btn:hover {
   background: #C85080;
+}
+
+/* Import/Export container */
+.import-export-container {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-btn {
+  background: #6c5ce7;
+  color: white;
+}
+
+.export-btn:hover {
+  background: #5f4fd1;
+}
+
+.import-btn {
+  background: #00b894;
+  color: white;
+}
+
+.import-btn:hover {
+  background: #00a383;
 }
 
 /* Modal */

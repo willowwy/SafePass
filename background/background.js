@@ -43,6 +43,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     handleClearPendingPassword(sendResponse);
     return true;
   }
+
+  // Handle unknown actions
+  console.warn('Unknown action:', request.action);
+  sendResponse({ success: false, error: 'Unknown action: ' + request.action });
+  return true;
 });
 
 // Handle save password request
