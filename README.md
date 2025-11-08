@@ -1,7 +1,5 @@
 # SafePass - Local Password Manager
 
-[English](README.md) | [简体中文](README.zh-CN.md)
-
 A secure and convenient browser password management extension with auto-save, smart autofill, and one-click login features.
 
 ## Key Features
