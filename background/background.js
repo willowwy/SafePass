@@ -82,7 +82,7 @@ async function handleSavePassword(data, sendResponse) {
     await chrome.storage.local.set({ passwords });
     sendResponse({ success: true });
   } catch (error) {
-    console.error('保存密码失败:', error);
+    console.error('Failed to save password:', error);
     sendResponse({ success: false, error: error.message });
   }
 }
@@ -102,7 +102,7 @@ async function handleGetPasswords(url, sendResponse) {
 
     sendResponse({ success: true, passwords: matchedPasswords });
   } catch (error) {
-    console.error('获取密码失败:', error);
+    console.error('Failed to get passwords:', error);
     sendResponse({ success: false, error: error.message });
   }
 }
@@ -121,7 +121,7 @@ async function handleCheckPassword(url, sendResponse) {
 
     sendResponse({ success: true, hasPassword });
   } catch (error) {
-    console.error('检查密码失败:', error);
+    console.error('Failed to check password:', error);
     sendResponse({ success: false, error: error.message });
   }
 }
@@ -147,7 +147,7 @@ async function handleSavePendingPassword(data, sendResponse) {
     await chrome.storage.local.set({ pendingPassword: data });
     sendResponse({ success: true });
   } catch (error) {
-    console.error('保存待确认密码失败:', error);
+    console.error('Failed to save pending password:', error);
     sendResponse({ success: false, error: error.message });
   }
 }
@@ -158,7 +158,7 @@ async function handleGetPendingPassword(sendResponse) {
     const result = await chrome.storage.local.get(['pendingPassword']);
     sendResponse({ success: true, data: result.pendingPassword || null });
   } catch (error) {
-    console.error('获取待确认密码失败:', error);
+    console.error('Failed to get pending password:', error);
     sendResponse({ success: false, error: error.message });
   }
 }
@@ -169,7 +169,7 @@ async function handleClearPendingPassword(sendResponse) {
     await chrome.storage.local.remove('pendingPassword');
     sendResponse({ success: true });
   } catch (error) {
-    console.error('清除待确认密码失败:', error);
+    console.error('Failed to clear pending password:', error);
     sendResponse({ success: false, error: error.message });
   }
 }

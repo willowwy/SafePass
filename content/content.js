@@ -28,7 +28,7 @@ function startExtensionContextMonitoring() {
 
   extensionContextCheckInterval = setInterval(() => {
     if (!isExtensionContextValid()) {
-      console.warn('🔄 Extension context lost. Please reload this page to use the password manager.');
+      console.warn('Extension context lost. Please reload this page to use the password manager.');
 
       // Stop all observers and timers
       if (observer) {
@@ -43,63 +43,8 @@ function startExtensionContextMonitoring() {
         clearTimeout(checkLoginFieldsTimer);
         checkLoginFieldsTimer = null;
       }
-
-      // Show a one-time notification to the user
-      showExtensionReloadNotification();
     }
   }, 5000);
-}
-
-// Show notification when extension is reloaded
-let notificationShown = false;
-function showExtensionReloadNotification() {
-  if (notificationShown) return;
-  notificationShown = true;
-
-  const notification = document.createElement('div');
-  notification.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #333;
-    color: white;
-    padding: 20px 30px;
-    border-radius: 8px;
-    font-size: 14px;
-    z-index: 9999999;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    text-align: center;
-    max-width: 400px;
-  `;
-  notification.innerHTML = `
-    <div style="font-weight: 600; margin-bottom: 8px;">🔄 密码管理器已更新</div>
-    <div style="font-size: 13px; color: #ddd; margin-bottom: 12px;">
-      请刷新页面以继续使用密码管理功能
-    </div>
-    <button style="
-      background: #4CAF50;
-      color: white;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-    " onclick="window.location.reload()">立即刷新</button>
-  `;
-
-  if (document.body) {
-    document.body.appendChild(notification);
-
-    // Auto remove after 10 seconds
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.remove();
-      }
-    }, 10000);
-  }
 }
 
 // Start monitoring on load
@@ -108,7 +53,6 @@ startExtensionContextMonitoring();
 // Helper function to safely send messages to background script
 async function safeSendMessage(message) {
   if (!isExtensionContextValid()) {
-    // Don't log warning here, the monitoring function will handle it
     return { success: false, error: 'Extension context invalidated' };
   }
 
@@ -127,8 +71,6 @@ async function safeSendMessage(message) {
         errorMessage.includes('Cannot access') ||
         errorMessage.includes('Receiving end does not exist')) {
       isExtensionValid = false;
-      // Trigger the notification
-      showExtensionReloadNotification();
       return { success: false, error: 'Extension context invalidated' };
     }
 
@@ -349,29 +291,56 @@ async function checkPendingPassword() {
   }
 }
 
-// Find username input field
+// Find username input field with intelligent matching
 function findUsernameField(form) {
-  const selectors = [
-    'input[type="email"]',
-    'input[type="text"][name*="user"]',
-    'input[type="text"][name*="email"]',
-    'input[type="text"][name*="login"]',
-    'input[type="text"][id*="user"]',
-    'input[type="text"][id*="email"]',
-    'input[type="text"][id*="login"]',
-    'input[autocomplete="username"]',
-    'input[autocomplete="email"]'
-  ];
+  // Priority 1: Email type (most specific)
+  const emailField = form.querySelector('input[type="email"]');
+  if (emailField) return emailField;
 
-  for (const selector of selectors) {
-    const field = form.querySelector(selector);
-    if (field) {
-      return field;
+  // Priority 2: Check all text-like inputs with username-related attributes
+  const usernameKeywords = ['user', 'email', 'login', 'account', 'id'];
+  const textInputs = form.querySelectorAll('input[type="text"], input:not([type])');
+
+  for (const input of textInputs) {
+    // Check all relevant attributes
+    const name = (input.name || '').toLowerCase();
+    const id = (input.id || '').toLowerCase();
+    const placeholder = (input.placeholder || '').toLowerCase();
+    const ariaLabel = (input.getAttribute('aria-label') || '').toLowerCase();
+    const autocomplete = (input.autocomplete || '').toLowerCase();
+    const className = (input.className || '').toLowerCase();
+
+    const allAttributes = `${name} ${id} ${placeholder} ${ariaLabel} ${autocomplete} ${className}`;
+
+    // Check if any keyword matches
+    if (usernameKeywords.some(keyword => allAttributes.includes(keyword))) {
+      return input;
     }
   }
 
-  const textFields = form.querySelectorAll('input[type="text"]');
-  return textFields[0];
+  // Priority 3: Find the first visible text input before password field
+  const passwordField = form.querySelector('input[type="password"]');
+  if (passwordField) {
+    const allInputs = Array.from(form.querySelectorAll('input[type="text"], input[type="email"], input:not([type])'));
+    const passwordIndex = Array.from(form.querySelectorAll('input')).indexOf(passwordField);
+
+    // Find text inputs that come before the password field
+    for (const input of allInputs) {
+      const inputIndex = Array.from(form.querySelectorAll('input')).indexOf(input);
+      if (inputIndex < passwordIndex && isVisibleField(input)) {
+        return input;
+      }
+    }
+  }
+
+  // Priority 4: Fallback to first visible text input
+  for (const input of textInputs) {
+    if (isVisibleField(input)) {
+      return input;
+    }
+  }
+
+  return null;
 }
 
 // Show save password prompt
@@ -540,11 +509,7 @@ async function savePassword(url, loginUrl, username, password) {
   if (response.success) {
     showToast('密码已保存');
   } else {
-    if (response.error && response.error.includes('Extension context invalidated')) {
-      showToast('请刷新页面后重试');
-    } else {
-      showToast('保存失败，请重试');
-    }
+    console.error('Failed to save password:', response.error);
   }
 }
 
@@ -581,31 +546,37 @@ async function checkForLoginFields() {
   }
 }
 
-// Find all username/email fields on the page
+// Find all username/email fields on the page with intelligent matching
 function findAllUsernameFields() {
-  const selectors = [
-    'input[type="email"]',
-    'input[type="text"][name*="user" i]',
-    'input[type="text"][name*="email" i]',
-    'input[type="text"][name*="login" i]',
-    'input[type="text"][id*="user" i]',
-    'input[type="text"][id*="email" i]',
-    'input[type="text"][id*="login" i]',
-    'input[autocomplete="username"]',
-    'input[autocomplete="email"]'
-  ];
-
   const fields = new Set();
+  const usernameKeywords = ['user', 'email', 'login', 'account', 'id'];
 
-  selectors.forEach(selector => {
-    try {
-      document.querySelectorAll(selector).forEach(field => {
-        if (isVisibleField(field)) {
-          fields.add(field);
-        }
-      });
-    } catch (e) {
-      // Ignore selector errors
+  // Find all email type inputs
+  document.querySelectorAll('input[type="email"]').forEach(field => {
+    if (isVisibleField(field)) {
+      fields.add(field);
+    }
+  });
+
+  // Find all text-like inputs and check their attributes
+  const textInputs = document.querySelectorAll('input[type="text"], input:not([type])');
+
+  textInputs.forEach(input => {
+    if (!isVisibleField(input)) return;
+
+    // Check all relevant attributes
+    const name = (input.name || '').toLowerCase();
+    const id = (input.id || '').toLowerCase();
+    const placeholder = (input.placeholder || '').toLowerCase();
+    const ariaLabel = (input.getAttribute('aria-label') || '').toLowerCase();
+    const autocomplete = (input.autocomplete || '').toLowerCase();
+    const className = (input.className || '').toLowerCase();
+
+    const allAttributes = `${name} ${id} ${placeholder} ${ariaLabel} ${autocomplete} ${className}`;
+
+    // Check if any keyword matches
+    if (usernameKeywords.some(keyword => allAttributes.includes(keyword))) {
+      fields.add(input);
     }
   });
 
@@ -820,7 +791,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       showToast('已自动填充登录信息');
       sendResponse({ success: true });
     } else {
-      showToast('未找到登录表单');
+      console.warn('Login form not found');
       sendResponse({ success: false });
     }
   }

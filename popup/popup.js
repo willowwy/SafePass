@@ -240,7 +240,7 @@ async function deletePassword(id) {
     renderPasswordList(passwords);
     showToast('密码已删除');
   } catch (error) {
-    showToast('删除失败，请重试');
+    console.error('Failed to delete password:', error);
   }
 }
 
@@ -253,7 +253,7 @@ async function copyToClipboard(id) {
     await navigator.clipboard.writeText(password.password);
     showToast('密码已复制到剪贴板');
   } catch (error) {
-    showToast('复制失败');
+    console.error('Failed to copy password:', error);
   }
 }
 
@@ -642,8 +642,8 @@ async function autoLogin(id) {
             action: 'autoFillLogin',
             username: password.username,
             password: password.password
-          }).catch(() => {
-            showToast('自动填充失败，请手动登录');
+          }).catch((error) => {
+            console.warn('Auto-fill failed:', error);
           });
         }, 500);
         chrome.tabs.onUpdated.removeListener(listener);
@@ -652,7 +652,6 @@ async function autoLogin(id) {
 
     showToast('正在跳转到登录页面...');
   } catch (error) {
-    console.error('Auto login error:', error);
-    showToast('跳转失败，请重试');
+    console.error('Failed to navigate:', error);
   }
 }
