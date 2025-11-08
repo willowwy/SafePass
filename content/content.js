@@ -709,7 +709,6 @@ function fillForm(form, password) {
     passwordField.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  showToast('已自动填充密码');
 }
 
 // Extract domain from URL
@@ -788,7 +787,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     tryFill();
 
     if (document.querySelector('input[type="password"]')) {
-      showToast('已自动填充登录信息');
       sendResponse({ success: true });
     } else {
       console.warn('Login form not found');
