@@ -1,6 +1,6 @@
 // DOM elements - cached for performance
 let searchInput, passwordList, addBtn, modal, modalTitle;
-let passwordForm, cancelBtn, websiteInput, usernameInput, passwordInput;
+let passwordForm, cancelBtn, websiteInput, loginUrlInput, usernameInput, passwordInput;
 let exportBtn, importBtn, importFileInput;
 
 // Master password elements
@@ -24,6 +24,7 @@ let masterPasswordHash = null; // Store master password (currently plain text, e
   passwordForm = document.getElementById('passwordForm');
   cancelBtn = document.getElementById('cancelBtn');
   websiteInput = document.getElementById('website');
+  loginUrlInput = document.getElementById('loginUrl');
   usernameInput = document.getElementById('username');
   passwordInput = document.getElementById('password');
   exportBtn = document.getElementById('exportBtn');
@@ -74,7 +75,7 @@ function setupEventListeners() {
     if (e.target === masterPasswordModal) closeMasterPasswordModal();
   });
 
-  // Event delegation for password list (more efficient)
+  // Event delegation for password list
   passwordList.addEventListener('click', (e) => {
     const item = e.target.closest('.password-item');
     if (!item) return;
@@ -82,6 +83,9 @@ function setupEventListeners() {
     if (e.target.classList.contains('delete-btn')) {
       e.stopPropagation();
       deletePassword(e.target.dataset.id);
+    } else if (e.target.classList.contains('login-btn')) {
+      e.stopPropagation();
+      autoLogin(e.target.dataset.id);
     } else {
       copyToClipboard(item.dataset.id);
     }
@@ -121,7 +125,10 @@ function renderPasswordList(list) {
     div.innerHTML = `
       <div class="password-item-header">
         <div class="website-name">${getDomainFromUrl(item.url)}</div>
-        <button class="delete-btn" data-id="${item.id}">删除</button>
+        <div class="item-actions">
+          <button class="login-btn" data-id="${item.id}" title="跳转并自动登录">登录</button>
+          <button class="delete-btn" data-id="${item.id}">删除</button>
+        </div>
       </div>
       <div class="username">${item.username}</div>
     `;
@@ -174,6 +181,7 @@ function openModal(password = null) {
   if (password) {
     modalTitle.textContent = '编辑密码';
     websiteInput.value = password.url;
+    loginUrlInput.value = password.loginUrl || '';
     usernameInput.value = password.username;
     passwordInput.value = password.password;
     editingId = password.id;
@@ -199,6 +207,7 @@ async function handleSave(e) {
   const passwordData = {
     id: editingId || generateId(),
     url: websiteInput.value,
+    loginUrl: loginUrlInput.value || websiteInput.value,
     username: usernameInput.value,
     password: passwordInput.value,
     createdAt: new Date().toISOString()
@@ -224,17 +233,14 @@ async function handleSave(e) {
 
 // Delete password
 async function deletePassword(id) {
-  if (!confirm('确定要删除这个密码吗？')) {
-    return;
-  }
-
   passwords = passwords.filter(p => p.id !== id);
 
   try {
     await chrome.storage.local.set({ passwords });
     renderPasswordList(passwords);
+    showToast('密码已删除');
   } catch (error) {
-    alert('删除失败，请重试');
+    showToast('删除失败，请重试');
   }
 }
 
@@ -422,11 +428,9 @@ function parseCSV(csvText) {
   const dataLines = lines.slice(1);
   const passwords = [];
 
-  dataLines.forEach((line, index) => {
+  dataLines.forEach((line) => {
     try {
       const fields = parseCSVLine(line);
-
-      // Expected format: Website, Username, Password, Created Date, ID
       if (fields.length >= 3) {
         const password = {
           url: fields[0] || '',
@@ -435,14 +439,12 @@ function parseCSV(csvText) {
           createdAt: fields[3] || new Date().toISOString(),
           id: fields[4] || generateId()
         };
-
-        // Validate required fields
         if (password.url && password.username && password.password) {
           passwords.push(password);
         }
       }
     } catch (error) {
-      console.warn(`Skipping line ${index + 2}: ${error.message}`);
+      // Skip invalid lines
     }
   });
 
@@ -571,17 +573,11 @@ async function handleMasterPasswordSave(e) {
   }
 
   try {
-    // TODO: Replace with proper password hashing
-    // For now, storing plain text (NOT SECURE - just a placeholder)
     await chrome.storage.local.set({ masterPassword: newPassword });
-
     masterPasswordHash = newPassword;
     updateMasterPasswordButton();
-
     showToast('主密码设置成功');
     closeMasterPasswordModal();
-
-    console.log('⚠️ WARNING: Master password is currently stored in plain text. Encryption will be implemented in the next phase.');
   } catch (error) {
     console.error('Error saving master password:', error);
     showToast('保存失败，请重试');
@@ -624,5 +620,39 @@ async function handleRemoveMasterPassword() {
   } catch (error) {
     console.error('Error removing master password:', error);
     showToast('移除失败，请重试');
+  }
+}
+
+// Auto login functionality
+async function autoLogin(id) {
+  const password = passwords.find(p => p.id === id);
+  if (!password) return;
+
+  const targetUrl = password.loginUrl || password.url;
+
+  try {
+    const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    await chrome.tabs.update(currentTab.id, { url: targetUrl });
+
+    chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+      if (tabId === currentTab.id && info.status === 'complete') {
+        // Wait for page scripts to finish initializing
+        setTimeout(() => {
+          chrome.tabs.sendMessage(currentTab.id, {
+            action: 'autoFillLogin',
+            username: password.username,
+            password: password.password
+          }).catch(() => {
+            showToast('自动填充失败，请手动登录');
+          });
+        }, 500);
+        chrome.tabs.onUpdated.removeListener(listener);
+      }
+    });
+
+    showToast('正在跳转到登录页面...');
+  } catch (error) {
+    console.error('Auto login error:', error);
+    showToast('跳转失败，请重试');
   }
 }

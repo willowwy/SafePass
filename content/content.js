@@ -114,13 +114,9 @@ async function safeSendMessage(message) {
 
   try {
     const response = await chrome.runtime.sendMessage(message);
-
-    // Handle case where response is undefined or null
     if (!response) {
-      console.warn('No response from background script for action:', message.action);
       return { success: false, error: 'No response from background script' };
     }
-
     return response;
   } catch (error) {
     // Handle different types of errors
@@ -136,14 +132,15 @@ async function safeSendMessage(message) {
       return { success: false, error: 'Extension context invalidated' };
     }
 
-    // Only log errors that are not related to extension context
-    console.error('Error sending message:', errorMessage, 'Action:', message.action);
     return { success: false, error: errorMessage };
   }
 }
 
 // Listen for form submissions
 document.addEventListener('submit', handleFormSubmit, true);
+
+// Listen for button clicks (for AJAX-based login forms)
+document.addEventListener('click', handleButtonClick, true);
 
 // Debounce timer for checkForLoginFields
 let checkLoginFieldsTimer = null;
@@ -252,28 +249,63 @@ setupMutationObserver();
 // Handle form submission
 async function handleFormSubmit(e) {
   const form = e.target;
-
-  // Find password input field
   const passwordField = form.querySelector('input[type="password"]');
-  if (!passwordField || !passwordField.value) {
-    return;
-  }
+  if (!passwordField || !passwordField.value) return;
 
-  // Find username input field (usually email or text)
   const usernameField = findUsernameField(form);
-  if (!usernameField || !usernameField.value) {
-    return;
-  }
+  if (!usernameField || !usernameField.value) return;
 
   const username = usernameField.value;
   const password = passwordField.value;
   const url = window.location.origin;
+  const currentUrl = new URL(window.location.href);
+  const loginUrl = currentUrl.origin + currentUrl.pathname;
 
-  // Save to temporary storage immediately without blocking form submission
   await safeSendMessage({
     action: 'savePendingPassword',
-    data: { url, username, password }
+    data: { url, loginUrl, username, password }
   });
+}
+
+// Handle button clicks (for AJAX-based login forms)
+async function handleButtonClick(e) {
+  const button = e.target.closest('button');
+  if (!button) return;
+
+  const buttonText = button.textContent.toLowerCase();
+  const buttonType = button.type?.toLowerCase();
+  const buttonId = button.id?.toLowerCase();
+
+  const isLoginButton =
+    buttonType === 'submit' ||
+    buttonText.includes('sign in') ||
+    buttonText.includes('log in') ||
+    buttonText.includes('login') ||
+    buttonText.includes('submit') ||
+    buttonId?.includes('sign-in') ||
+    buttonId?.includes('login');
+
+  if (!isLoginButton) return;
+
+  const form = button.closest('form') || document;
+  const passwordField = form.querySelector('input[type="password"]');
+  if (!passwordField || !passwordField.value) return;
+
+  const usernameField = findUsernameField(form);
+  if (!usernameField || !usernameField.value) return;
+
+  const username = usernameField.value;
+  const password = passwordField.value;
+  const url = window.location.origin;
+  const currentUrl = new URL(window.location.href);
+  const loginUrl = currentUrl.origin + currentUrl.pathname;
+
+  await safeSendMessage({
+    action: 'savePendingPassword',
+    data: { url, loginUrl, username, password }
+  });
+
+  setTimeout(() => checkPendingPassword(), 1000);
 }
 
 // Check for pending passwords
@@ -287,11 +319,9 @@ async function checkPendingPassword() {
       return;
     }
 
-    const { url, username, password } = response.data;
+    const { url, loginUrl, username, password } = response.data;
 
-    // Validate data
     if (!url || !username || !password) {
-      console.warn('Invalid pending password data:', response.data);
       await safeSendMessage({ action: 'clearPendingPassword' });
       return;
     }
@@ -313,7 +343,7 @@ async function checkPendingPassword() {
     }
 
     // Show save prompt with appropriate message
-    showSavePrompt(url, username, password, isNewAccount, existingPassword);
+    showSavePrompt(url, loginUrl, username, password, isNewAccount, existingPassword);
   } catch (error) {
     console.error('Error in checkPendingPassword:', error);
   }
@@ -321,7 +351,6 @@ async function checkPendingPassword() {
 
 // Find username input field
 function findUsernameField(form) {
-  // Common username field selectors
   const selectors = [
     'input[type="email"]',
     'input[type="text"][name*="user"]',
@@ -336,18 +365,17 @@ function findUsernameField(form) {
 
   for (const selector of selectors) {
     const field = form.querySelector(selector);
-    if (field && field.value) {
+    if (field) {
       return field;
     }
   }
 
-  // If not found, return the first text input
   const textFields = form.querySelectorAll('input[type="text"]');
   return textFields[0];
 }
 
 // Show save password prompt
-function showSavePrompt(url, username, password, isNewAccount = true, existingPassword = null) {
+function showSavePrompt(url, loginUrl, username, password, isNewAccount = true, existingPassword = null) {
   // Check if prompt already exists
   if (document.getElementById('password-manager-prompt')) {
     return;
@@ -462,7 +490,7 @@ function showSavePrompt(url, username, password, isNewAccount = true, existingPa
 
   // Save button handler
   saveBtn.addEventListener('click', async () => {
-    await savePassword(url, username, password);
+    await savePassword(url, loginUrl, username, password);
     // Clear temporary storage
     await safeSendMessage({ action: 'clearPendingPassword' });
 
@@ -503,10 +531,10 @@ function maskPassword(password) {
 }
 
 // Save password
-async function savePassword(url, username, password) {
+async function savePassword(url, loginUrl, username, password) {
   const response = await safeSendMessage({
     action: 'savePassword',
-    data: { url, username, password }
+    data: { url, loginUrl, username, password }
   });
 
   if (response.success) {
@@ -523,31 +551,25 @@ async function savePassword(url, username, password) {
 // Check for login fields (username and password) and add autofill
 async function checkForLoginFields() {
   try {
-    // Find all password fields
     const passwordFields = document.querySelectorAll('input[type="password"]');
-
-    // Find all username/email fields
     const usernameFields = findAllUsernameFields();
 
     if (passwordFields.length === 0 && usernameFields.length === 0) {
       return;
     }
 
-    // Check if there are saved passwords
     const response = await safeSendMessage({
       action: 'getPasswords',
       url: window.location.origin
     });
 
     if (response && response.success && response.passwords && Array.isArray(response.passwords) && response.passwords.length > 0) {
-      // Add autofill to password fields
       passwordFields.forEach(field => {
         if (field && field.nodeType === Node.ELEMENT_NODE) {
           addAutoFillButton(field, response.passwords);
         }
       });
 
-      // Add autofill to username/email fields
       usernameFields.forEach(field => {
         if (field && field.nodeType === Node.ELEMENT_NODE) {
           addAutoFillButton(field, response.passwords);
@@ -578,7 +600,6 @@ function findAllUsernameFields() {
   selectors.forEach(selector => {
     try {
       document.querySelectorAll(selector).forEach(field => {
-        // Only add visible fields that are likely login fields
         if (isVisibleField(field)) {
           fields.add(field);
         }
@@ -610,7 +631,6 @@ function isVisibleField(field) {
 
 // Add autofill button to login field (username or password)
 function addAutoFillButton(loginField, passwords) {
-  // Avoid duplicate addition
   if (loginField.dataset.pmEnabled) {
     return;
   }
@@ -618,7 +638,6 @@ function addAutoFillButton(loginField, passwords) {
 
   const form = loginField.closest('form') || document.body;
 
-  // Show autofill options when field is focused
   loginField.addEventListener('focus', () => {
     showAutoFillOptions(loginField, passwords, form);
   });
@@ -626,7 +645,6 @@ function addAutoFillButton(loginField, passwords) {
 
 // Show autofill options
 function showAutoFillOptions(loginField, passwords, form) {
-  // Remove existing options box
   const existing = document.getElementById('password-manager-autofill');
   if (existing) {
     existing.remove();
@@ -704,18 +722,20 @@ function escapeHtml(text) {
 
 // Fill form with saved credentials
 function fillForm(form, password) {
-  // Fill username field
   const usernameField = findUsernameField(form);
+
   if (usernameField) {
     usernameField.value = password.username;
     usernameField.dispatchEvent(new Event('input', { bubbles: true }));
+    usernameField.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  // Fill password field
   const passwordField = form.querySelector('input[type="password"]');
+
   if (passwordField) {
     passwordField.value = password.password;
     passwordField.dispatchEvent(new Event('input', { bubbles: true }));
+    passwordField.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
   showToast('已自动填充密码');
@@ -754,3 +774,56 @@ function showToast(message) {
     toast.remove();
   }, 2000);
 }
+
+// Listen for auto-fill login messages from popup
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'autoFillLogin') {
+    const { username, password } = message;
+
+    // Retry filling multiple times to handle dynamic forms
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    const tryFill = () => {
+      const passwordField = document.querySelector('input[type="password"]');
+      const form = passwordField ? passwordField.closest('form') || document.body : document.body;
+      const usernameField = findUsernameField(form);
+
+      if (usernameField) {
+        usernameField.value = username;
+        usernameField.dispatchEvent(new Event('input', { bubbles: true }));
+        usernameField.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      if (passwordField) {
+        passwordField.value = password;
+        passwordField.dispatchEvent(new Event('input', { bubbles: true }));
+        passwordField.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      attempts++;
+
+      // Check if values stuck, retry if not
+      setTimeout(() => {
+        if (attempts < maxAttempts) {
+          const stillEmpty = (usernameField && !usernameField.value) || (passwordField && !passwordField.value);
+          if (stillEmpty) {
+            tryFill();
+          }
+        }
+      }, 200);
+    };
+
+    tryFill();
+
+    if (document.querySelector('input[type="password"]')) {
+      showToast('已自动填充登录信息');
+      sendResponse({ success: true });
+    } else {
+      showToast('未找到登录表单');
+      sendResponse({ success: false });
+    }
+  }
+
+  return true;
+});

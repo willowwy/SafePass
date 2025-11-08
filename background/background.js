@@ -2,9 +2,6 @@
 
 // Initialize on installation
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('密码管理器已安装');
-
-  // Initialize storage
   chrome.storage.local.get(['passwords'], (result) => {
     if (!result.passwords) {
       chrome.storage.local.set({ passwords: [] });
@@ -65,6 +62,7 @@ async function handleSavePassword(data, sendResponse) {
       // Update existing password
       passwords[existingIndex] = {
         ...passwords[existingIndex],
+        loginUrl: data.loginUrl || data.url,
         password: data.password,
         updatedAt: new Date().toISOString()
       };
@@ -73,6 +71,7 @@ async function handleSavePassword(data, sendResponse) {
       const newPassword = {
         id: generateId(),
         url: data.url,
+        loginUrl: data.loginUrl || data.url,
         username: data.username,
         password: data.password,
         createdAt: new Date().toISOString()
