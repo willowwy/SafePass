@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>密码管理器</title>
+  <title>SafePass</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -11,38 +11,34 @@
     <!-- Header -->
     <header>
       <h1>SafePass</h1>
+
+      <!-- Top-right menu -->
+      <div class="menu-wrapper">
+        <button class="menu-icon" id="menuIcon">☰</button>
+        <div class="menu-dropdown" id="menuDropdown">
+          <button class="menu-item" id="exportBtn">导出</button>
+          <button class="menu-item" id="importBtn">导入</button>
+        </div>
+        <input type="file" id="importFileInput" accept=".csv" style="display:none;">
+      </div>
     </header>
 
-    <!-- Scrollable content area -->
+    <!-- Scrollable content -->
     <div class="content">
-      <!-- Search box -->
       <div class="search-box">
         <input type="text" id="searchInput" placeholder="搜索网站...">
       </div>
 
-      <!-- Password list (only this section scrolls) -->
       <div class="password-list" id="passwordList">
-        <!-- Password items dynamically loaded by JS -->
+        <!-- Items rendered by JS -->
       </div>
     </div>
 
-    <!-- Fixed bottom action bar -->
-    <div class="fixed-actions">
-      <!-- Add password button -->
-      <button class="add-btn" id="addBtn">+ 手动添加密码</button>
-
-      <!-- Import / Export buttons -->
-      <div class="import-export-container">
-        <button class="action-btn export-btn" id="exportBtn">导出密码</button>
-        <button class="action-btn import-btn" id="importBtn">导入密码</button>
-      </div>
-      <input type="file" id="importFileInput" accept=".csv" style="display: none;">
-
-      <!-- Master password button -->
-      <button class="action-btn master-password-btn" id="masterPasswordBtn">
-        <span id="masterPasswordBtnText">设置主密码</span>
-      </button>
-    </div>
+    <!-- Bottom actions -->
+    <button class="add-btn" id="addBtn">+ 手动添加密码</button>
+    <button class="action-btn master-password-btn" id="masterPasswordBtn">
+      <span id="masterPasswordBtnText">设置主密码</span>
+    </button>
 
     <!-- Add/Edit Password Modal -->
     <div class="modal" id="modal">
@@ -78,63 +74,30 @@
     <div class="modal" id="masterPasswordModal">
       <div class="modal-content">
         <h2 id="masterPasswordModalTitle">设置主密码</h2>
-
-        <div id="masterPasswordStatus" class="master-password-status">
-          <!-- Current master password status -->
-        </div>
-
+        <div id="masterPasswordStatus" class="master-password-status"></div>
         <form id="masterPasswordForm">
           <div class="form-group">
             <label for="currentMasterPassword">当前主密码</label>
-            <input
-              type="password"
-              id="currentMasterPassword"
-              placeholder="如果已设置，请输入当前主密码"
-              autocomplete="current-password">
+            <input type="password" id="currentMasterPassword" placeholder="如果已设置，请输入当前主密码">
             <small class="form-hint">首次设置时留空</small>
           </div>
-
           <div class="form-group">
             <label for="newMasterPassword">新主密码</label>
-            <input
-              type="password"
-              id="newMasterPassword"
-              placeholder="输入新的主密码"
-              required
-              autocomplete="new-password"
-              minlength="6">
-            <small class="form-hint">至少 6 个字符</small>
+            <input type="password" id="newMasterPassword" placeholder="输入新的主密码" required minlength="6">
           </div>
-
           <div class="form-group">
             <label for="confirmMasterPassword">确认主密码</label>
-            <input
-              type="password"
-              id="confirmMasterPassword"
-              placeholder="再次输入主密码"
-              required
-              autocomplete="new-password"
-              minlength="6">
+            <input type="password" id="confirmMasterPassword" placeholder="再次输入主密码" required minlength="6">
           </div>
-
-          <div class="master-password-warning">
-            <strong>⚠️ 重要提示：</strong>
-            <ul>
-              <li>主密码用于保护您的所有密码</li>
-              <li>请务必记住主密码，忘记后无法恢复</li>
-            </ul>
-          </div>
-
           <div class="form-actions">
             <button type="button" class="btn-cancel" id="masterPasswordCancelBtn">取消</button>
-            <button type="button" class="btn-danger" id="removeMasterPasswordBtn" style="display: none;">移除主密码</button>
+            <button type="button" class="btn-danger" id="removeMasterPasswordBtn" style="display:none;">移除主密码</button>
             <button type="submit" class="btn-save">保存</button>
           </div>
         </form>
       </div>
     </div>
   </div>
-
   <script src="popup.js"></script>
 </body>
 </html>

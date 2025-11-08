@@ -28,9 +28,7 @@ function startExtensionContextMonitoring() {
 
   extensionContextCheckInterval = setInterval(() => {
     if (!isExtensionContextValid()) {
-      console.warn('Extension context lost. Please reload this page to use the password manager.');
-
-      // Stop all observers and timers
+      // Extension context lost - silently stop all observers and timers
       if (observer) {
         observer.disconnect();
         observer = null;

@@ -6,6 +6,7 @@ let masterPasswordBtn, masterPasswordBtnText;
 let masterPasswordModal, masterPasswordModalTitle, masterPasswordStatus;
 let masterPasswordForm, currentMasterPasswordInput, newMasterPasswordInput, confirmMasterPasswordInput;
 let masterPasswordCancelBtn, removeMasterPasswordBtn;
+let menuIcon, menuDropdown;
 
 let passwords = [];
 let editingId = null;
@@ -27,6 +28,8 @@ let masterPasswordHash = null;
     exportBtn = document.getElementById('exportBtn');
     importBtn = document.getElementById('importBtn');
     importFileInput = document.getElementById('importFileInput');
+    menuIcon = document.getElementById('menuIcon');
+    menuDropdown = document.getElementById('menuDropdown');
 
     masterPasswordBtn = document.getElementById('masterPasswordBtn');
     masterPasswordBtnText = document.getElementById('masterPasswordBtnText');
@@ -51,9 +54,28 @@ function setupEventListeners() {
     cancelBtn.addEventListener('click', closeModal);
     passwordForm.addEventListener('submit', handleSave);
     searchInput.addEventListener('input', handleSearch);
-    exportBtn.addEventListener('click', exportPasswords);
-    importBtn.addEventListener('click', () => importFileInput.click());
+    exportBtn.addEventListener('click', () => {
+        menuDropdown.classList.remove('active');
+        exportPasswords();
+    });
+    importBtn.addEventListener('click', () => {
+        menuDropdown.classList.remove('active');
+        importFileInput.click();
+    });
     importFileInput.addEventListener('change', handleImport);
+
+    // Menu toggle
+    menuIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menuDropdown.classList.toggle('active');
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!menuDropdown.contains(e.target) && e.target !== menuIcon) {
+            menuDropdown.classList.remove('active');
+        }
+    });
 
     masterPasswordBtn.addEventListener('click', openMasterPasswordModal);
     masterPasswordCancelBtn.addEventListener('click', closeMasterPasswordModal);

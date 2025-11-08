@@ -1,3 +1,4 @@
+/* Global reset */
 * {
   margin: 0;
   padding: 0;
@@ -6,149 +7,187 @@
 
 body {
   width: 350px;
-  min-height: 580px;
+  height: 580px;
+  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #FBF5F9;
+  background: #FFF5F2;
+  color: #064232;
+  border-radius: 12px;
 }
 
 .container {
   display: flex;
   flex-direction: column;
   height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
+/* Header */
 header {
-  background: #fbb2d3;
+  background: #568F87;
   color: white;
   padding: 16px;
   text-align: center;
+  position: relative;
+  border-radius: 12px 12px 0 0;
 }
 
 header h1 {
-  font-size: 18px;
-  font-weight: 600;
+  font-family: 'Segoe UI', 'Gill Sans', 'Helvetica Neue', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
 }
 
+/* Menu icon */
+.menu-wrapper {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.menu-icon {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.menu-icon:hover {
+  transform: rotate(90deg);
+}
+
+/* Dropdown */
+.menu-dropdown {
+  position: absolute;
+  top: 28px;
+  right: 0;
+  background: white;
+  border: 1px solid #F5BABB;
+  border-radius: 10px;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  gap: 6px; /* spacing between buttons */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 2000;
+}
+
+
+.menu-dropdown.active {
+  display: flex;
+}
+
+/* Each menu item looks like a button */
+.menu-item {
+  width: 100px;
+  text-align: center;
+  padding: 8px 12px;
+  border: none;
+  background: #F5BABB;
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.2s;
+  white-space: nowrap; /* prevent text wrapping */
+}
+
+.menu-item:hover {
+  background: #568F87;
+  color: white;
+}
+
+/* Content */
 .content {
-  padding: 12px;
   flex: 1;
-}
-
-/* Search box */
-.search-box {
-  margin-bottom: 12px;
+  overflow-y: auto;
+  padding: 12px;
 }
 
 .search-box input {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  border: 1px solid #F5BABB;
+  border-radius: 8px;
   font-size: 14px;
 }
 
 .search-box input:focus {
   outline: none;
-  border-color: #D75A8E;
+  border-color: #568F87;
 }
 
 /* Password list */
 .password-list {
-  max-height: 400px;
   overflow-y: auto;
-  margin-bottom: 12px;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 40px 20px;
-  color: #666;
-}
-
-.empty-state p {
-  margin-bottom: 8px;
-}
-
-.empty-state .hint {
-  font-size: 12px;
-  color: #999;
+  margin-top: 10px;
 }
 
 .password-item {
   background: white;
-  border-radius: 8px;
-  padding: 12px;
+  border: 1px solid #F5BABB;
+  border-radius: 10px;
+  /*padding: 10px;*/
+  padding: 6px 12px 10px;
   margin-bottom: 8px;
-  cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
 }
 
 .password-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(215, 90, 142, 0.15);
+  box-shadow: 0 2px 8px rgba(86,143,135,0.2);
 }
 
 .password-item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
 }
 
 .website-name {
+  font-size: 13px;
   font-weight: 600;
-  color: #333;
-  font-size: 14px;
-}
-
-.item-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.login-btn {
-  background: #4CAF50;
-  border: none;
-  color: white;
-  cursor: pointer;
-  padding: 4px 10px;
-  font-size: 12px;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-
-.login-btn:hover {
-  background: #45a049;
-}
-
-.delete-btn {
-  background: none;
-  border: none;
-  color: #ff4444;
-  cursor: pointer;
-  padding: 4px 8px;
-  font-size: 12px;
-}
-
-.delete-btn:hover {
-  background: #ffeeee;
-  border-radius: 4px;
+  color: #064232;
 }
 
 .username {
   color: #666;
-  font-size: 13px;
+  font-size: 12px;
 }
+
+/* Buttons */
+.login-btn, .delete-btn {
+  background: #FFF5F2;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.login-btn { color: green; }
+.delete-btn { color: #c62828; }
+
+.delete-btn:hover { background: #ffebeb; }
+.login-btn:hover { background: #e0f2e9; }
 
 /* Add button */
 .add-btn {
   width: 100%;
   padding: 12px;
-  background: #fbb2d3;
-  color: white;
+  background: #F5BABB;
+  color: #064232;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
@@ -156,64 +195,32 @@ header h1 {
 }
 
 .add-btn:hover {
-  background: #f99cc4;
+  background: #E79A9A;
 }
 
-/* Import/Export container */
-.import-export-container {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.action-btn {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.export-btn {
-  background: #ff9f43;
-  color: white;
-}
-
-.export-btn:hover {
-  background: #ee8c2e;
-}
-
-.import-btn {
-  background: #74b9ff;
-  color: white;
-}
-
-.import-btn:hover {
-  background: #5fa8f5;
-}
-
+/* Master password button */
 .master-password-btn {
   width: 100%;
-  background: #fd79a8;
+  background: #568F87;
   color: white;
-  margin-top: 8px;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
 .master-password-btn:hover {
-  background: #e66590;
+  background: #064232;
 }
 
 /* Modal */
 .modal {
   display: none;
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background: rgba(0,0,0,0.5);
   z-index: 1000;
 }
@@ -227,17 +234,17 @@ header h1 {
 .modal-content {
   background: white;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 12px;
   width: 90%;
   max-width: 300px;
-  max-height: 550px;
   overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
 .modal-content h2 {
   font-size: 16px;
   margin-bottom: 16px;
-  color: #333;
+  color: #064232;
 }
 
 .form-group {
@@ -247,23 +254,24 @@ header h1 {
 .form-group label {
   display: block;
   font-size: 13px;
-  color: #666;
+  color: #064232;
   margin-bottom: 6px;
 }
 
 .form-group input {
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid #F5BABB;
+  border-radius: 6px;
   font-size: 14px;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #D75A8E;
+  border-color: #568F87;
 }
 
+/* Form buttons */
 .form-actions {
   display: flex;
   gap: 8px;
@@ -272,10 +280,9 @@ header h1 {
 
 .form-actions button {
   flex: 1;
-  padding: 10px;
   border: none;
-  border-radius: 4px;
-  font-size: 14px;
+  border-radius: 6px;
+  padding: 10px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -290,12 +297,12 @@ header h1 {
 }
 
 .btn-save {
-  background: #D75A8E;
+  background: #568F87;
   color: white;
 }
 
 .btn-save:hover {
-  background: #C85080;
+  background: #064232;
 }
 
 .btn-danger {
@@ -305,56 +312,4 @@ header h1 {
 
 .btn-danger:hover {
   background: #ee5a52;
-}
-
-/* Master Password Specific Styles */
-.master-password-status {
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  margin-bottom: 16px;
-  font-size: 13px;
-}
-
-.master-password-status.has-password {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.master-password-status.no-password {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeaa7;
-}
-
-.master-password-warning {
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  border-radius: 6px;
-  padding: 12px;
-  margin: 16px 0;
-  font-size: 12px;
-  color: #856404;
-}
-
-.master-password-warning strong {
-  display: block;
-  margin-bottom: 8px;
-}
-
-.master-password-warning ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.master-password-warning li {
-  margin-bottom: 4px;
-}
-
-.form-hint {
-  display: block;
-  font-size: 11px;
-  color: #999;
-  margin-top: 4px;
 }
