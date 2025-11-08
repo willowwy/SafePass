@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,14 +10,14 @@
   <div class="container">
     <!-- Header -->
     <header>
-      <h1>SafePass</h1>
+      <h1 data-i18n="appName">SafePass</h1>
 
       <!-- Top-right menu -->
       <div class="menu-wrapper">
         <button class="menu-icon" id="menuIcon">☰</button>
         <div class="menu-dropdown" id="menuDropdown">
-          <button class="menu-item" id="exportBtn">导出</button>
-          <button class="menu-item" id="importBtn">导入</button>
+          <button class="menu-item" id="exportBtn" data-i18n="exportPasswords">导出</button>
+          <button class="menu-item" id="importBtn" data-i18n="importPasswords">导入</button>
         </div>
         <input type="file" id="importFileInput" accept=".csv" style="display:none;">
       </div>
@@ -26,7 +26,7 @@
     <!-- Scrollable content -->
     <div class="content">
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="搜索网站...">
+        <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="搜索网站...">
       </div>
 
       <div class="password-list" id="passwordList">
@@ -35,36 +35,36 @@
     </div>
 
     <!-- Bottom actions -->
-    <button class="add-btn" id="addBtn">+ 手动添加密码</button>
+    <button class="add-btn" id="addBtn" data-i18n="addPassword">+ 手动添加密码</button>
     <button class="action-btn master-password-btn" id="masterPasswordBtn">
-      <span id="masterPasswordBtnText">设置主密码</span>
+      <span id="masterPasswordBtnText" data-i18n="setMasterPassword">设置主密码</span>
     </button>
 
     <!-- Add/Edit Password Modal -->
     <div class="modal" id="modal">
       <div class="modal-content">
-        <h2 id="modalTitle">添加密码</h2>
+        <h2 id="modalTitle" data-i18n="addPasswordTitle">添加密码</h2>
         <form id="passwordForm">
           <div class="form-group">
-            <label for="website">网站</label>
-            <input type="text" id="website" placeholder="https://example.com" required>
+            <label for="website" data-i18n="website">网站</label>
+            <input type="text" id="website" data-i18n-placeholder="websitePlaceholder" placeholder="https://example.com" required>
           </div>
           <div class="form-group">
-            <label for="loginUrl">登录页面</label>
-            <input type="text" id="loginUrl" placeholder="https://example.com/login">
-            <small class="form-hint">留空则使用网站地址</small>
+            <label for="loginUrl" data-i18n="loginUrl">登录页面</label>
+            <input type="text" id="loginUrl" data-i18n-placeholder="loginUrlPlaceholder" placeholder="https://example.com/login">
+            <small class="form-hint" data-i18n="loginUrlHint">留空则使用网站地址</small>
           </div>
           <div class="form-group">
-            <label for="username">用户名</label>
-            <input type="text" id="username" placeholder="user@email.com" required>
+            <label for="username" data-i18n="username">用户名</label>
+            <input type="text" id="username" data-i18n-placeholder="usernamePlaceholder" placeholder="user@email.com" required>
           </div>
           <div class="form-group">
-            <label for="password">密码</label>
+            <label for="password" data-i18n="password">密码</label>
             <input type="password" id="password" required>
           </div>
           <div class="form-actions">
-            <button type="button" class="btn-cancel" id="cancelBtn">取消</button>
-            <button type="submit" class="btn-save">保存</button>
+            <button type="button" class="btn-cancel" id="cancelBtn" data-i18n="cancel">取消</button>
+            <button type="submit" class="btn-save" data-i18n="save">保存</button>
           </div>
         </form>
       </div>
@@ -73,26 +73,25 @@
     <!-- Master Password Modal -->
     <div class="modal" id="masterPasswordModal">
       <div class="modal-content">
-        <h2 id="masterPasswordModalTitle">设置主密码</h2>
+        <h2 id="masterPasswordModalTitle" data-i18n="masterPasswordTitle">设置主密码</h2>
         <div id="masterPasswordStatus" class="master-password-status"></div>
         <form id="masterPasswordForm">
-          <div class="form-group">
-            <label for="currentMasterPassword">当前主密码</label>
-            <input type="password" id="currentMasterPassword" placeholder="如果已设置，请输入当前主密码">
-            <small class="form-hint">首次设置时留空</small>
+          <div class="form-group form-group-divider">
+            <label for="currentMasterPassword" data-i18n="currentMasterPassword">当前主密码</label>
+            <input type="password" id="currentMasterPassword" data-i18n-placeholder="currentMasterPasswordPlaceholder" placeholder="如果已设置，请输入当前主密码">
           </div>
           <div class="form-group">
-            <label for="newMasterPassword">新主密码</label>
-            <input type="password" id="newMasterPassword" placeholder="输入新的主密码" required minlength="6">
+            <label for="newMasterPassword" data-i18n="newMasterPassword">新主密码</label>
+            <input type="password" id="newMasterPassword" data-i18n-placeholder="newMasterPasswordPlaceholder" placeholder="输入新的主密码" required minlength="6">
           </div>
           <div class="form-group">
-            <label for="confirmMasterPassword">确认主密码</label>
-            <input type="password" id="confirmMasterPassword" placeholder="再次输入主密码" required minlength="6">
+            <label for="confirmMasterPassword" data-i18n="confirmMasterPassword">确认主密码</label>
+            <input type="password" id="confirmMasterPassword" data-i18n-placeholder="confirmMasterPasswordPlaceholder" placeholder="再次输入主密码" required minlength="6">
           </div>
           <div class="form-actions">
-            <button type="button" class="btn-cancel" id="masterPasswordCancelBtn">取消</button>
-            <button type="button" class="btn-danger" id="removeMasterPasswordBtn" style="display:none;">移除主密码</button>
-            <button type="submit" class="btn-save">保存</button>
+            <button type="button" class="btn-cancel" id="masterPasswordCancelBtn" data-i18n="cancel">取消</button>
+            <button type="button" class="btn-danger" id="removeMasterPasswordBtn" data-i18n="removeMasterPassword" style="display:none;">移除主密码</button>
+            <button type="submit" class="btn-save" data-i18n="save">保存</button>
           </div>
         </form>
       </div>

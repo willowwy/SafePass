@@ -12,6 +12,30 @@ let passwords = [];
 let editingId = null;
 let masterPasswordHash = null;
 
+// Initialize i18n
+function initI18n() {
+    // Replace all elements with data-i18n attribute
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        const message = chrome.i18n.getMessage(key);
+        if (message) element.textContent = message;
+    });
+
+    // Replace all placeholders with data-i18n-placeholder attribute
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        const message = chrome.i18n.getMessage(key);
+        if (message) element.placeholder = message;
+    });
+
+    // Replace all titles with data-i18n-title attribute
+    document.querySelectorAll('[data-i18n-title]').forEach(element => {
+        const key = element.getAttribute('data-i18n-title');
+        const message = chrome.i18n.getMessage(key);
+        if (message) element.title = message;
+    });
+}
+
 // Initialize
 (function init() {
     searchInput = document.getElementById('searchInput');
@@ -43,6 +67,7 @@ let masterPasswordHash = null;
     masterPasswordCancelBtn = document.getElementById('masterPasswordCancelBtn');
     removeMasterPasswordBtn = document.getElementById('removeMasterPasswordBtn');
 
+    initI18n();
     setupEventListeners();
     loadPasswords();
     loadMasterPassword();
@@ -117,8 +142,8 @@ function renderPasswordList(list) {
     if (!list.length) {
         passwordList.innerHTML = `
       <div class="empty-state">
-        <p>还没有保存的密码</p>
-        <p class="hint">在网站上登录时会自动询问是否保存</p>
+        <p>${chrome.i18n.getMessage('noPasswordsYet')}</p>
+        <p class="hint">${chrome.i18n.getMessage('autoSaveHint')}</p>
       </div>`;
         return;
     }
@@ -134,8 +159,8 @@ function renderPasswordList(list) {
       <div class="password-item-header">
         <div class="website-name">${getDomainFromUrl(url)}</div>
         <div class="item-actions">
-          <button class="login-btn" data-id="${item.id}">登录</button>
-          <button class="delete-btn" data-id="${item.id}">删除</button>
+          <button class="login-btn" data-id="${item.id}">${chrome.i18n.getMessage('login')}</button>
+          <button class="delete-btn" data-id="${item.id}">${chrome.i18n.getMessage('delete')}</button>
         </div>
       </div>
       <div class="username">${username}</div>`;
@@ -178,14 +203,14 @@ function handleSearch(e) {
 // Modal
 function openModal(password = null) {
     if (password) {
-        modalTitle.textContent = '编辑密码';
+        modalTitle.textContent = chrome.i18n.getMessage('editPasswordTitle');
         websiteInput.value = password.url ?? '';
         loginUrlInput.value = password.loginUrl ?? '';
         usernameInput.value = password.username ?? '';
         passwordInput.value = password.password ?? '';
         editingId = password.id ?? null;
     } else {
-        modalTitle.textContent = '添加密码';
+        modalTitle.textContent = chrome.i18n.getMessage('addPasswordTitle');
         passwordForm.reset();
         editingId = null;
     }
@@ -224,7 +249,7 @@ async function deletePassword(id) {
     passwords = passwords.filter(p => p.id !== id);
     await chrome.storage.local.set({passwords});
     renderPasswordList(passwords);
-    showToast('密码已删除');
+    showToast(chrome.i18n.getMessage('passwordDeleted'));
 }
 
 // Copy
@@ -232,7 +257,7 @@ async function copyToClipboard(id) {
     const p = passwords.find(p => p.id === id);
     if (!p) return;
     await navigator.clipboard.writeText(p.password);
-    showToast('密码已复制');
+    showToast(chrome.i18n.getMessage('passwordCopied'));
 }
 
 // Toast
@@ -258,13 +283,13 @@ function generateId() {
 // Export
 async function exportPasswords() {
     if (masterPasswordHash) {
-        const input = prompt('请输入主密码以导出密码数据：');
-        if (!input) return showToast('已取消导出');
-        if (input !== masterPasswordHash) return showToast('主密码不正确');
+        const input = prompt(chrome.i18n.getMessage('enterMasterPasswordToExport'));
+        if (!input) return showToast(chrome.i18n.getMessage('exportCancelled'));
+        if (input !== masterPasswordHash) return showToast(chrome.i18n.getMessage('masterPasswordIncorrect'));
     }
 
     const {passwords} = await chrome.storage.local.get(['passwords']);
-    if (!passwords?.length) return showToast('没有可导出的密码');
+    if (!passwords?.length) return showToast(chrome.i18n.getMessage('noPasswordsToExport'));
 
     const headers = ['Website', 'Username', 'Password', 'Created', 'ID'];
     const rows = [headers.join(',')];
@@ -285,7 +310,7 @@ async function exportPasswords() {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    showToast(`成功导出 ${passwords.length} 个密码`);
+    showToast(chrome.i18n.getMessage('exportSuccess').replace('{count}', passwords.length));
 }
 
 function escapeCSV(str) {
@@ -300,16 +325,16 @@ async function handleImport(e) {
     e.target.value = '';
     const text = await file.text();
     const imported = parseCSV(text);
-    if (!imported.length) return showToast('文件中没有有效数据');
+    if (!imported.length) return showToast(chrome.i18n.getMessage('noValidData'));
 
-    const merge = confirm(`发现 ${imported.length} 个密码\n确定合并吗？取消则替换所有数据`);
+    const merge = confirm(chrome.i18n.getMessage('importConfirm').replace('{count}', imported.length));
     let finalPasswords = imported;
     if (merge) {
         const {passwords: existing = []} = await chrome.storage.local.get(['passwords']);
         const ids = new Set(existing.map(p => p.id));
         const newOnes = imported.filter(p => !ids.has(p.id));
         finalPasswords = [...existing, ...newOnes];
-        showToast(`导入 ${newOnes.length} 个新密码`);
+        showToast(chrome.i18n.getMessage('importSuccess').replace('{count}', newOnes.length));
     }
     await chrome.storage.local.set({passwords: finalPasswords});
     passwords = finalPasswords;
@@ -335,20 +360,20 @@ async function loadMasterPassword() {
 }
 
 function updateMasterPasswordButton() {
-    masterPasswordBtnText.textContent = masterPasswordHash ? '管理主密码' : '设置主密码';
+    masterPasswordBtnText.textContent = masterPasswordHash ? chrome.i18n.getMessage('manageMasterPassword') : chrome.i18n.getMessage('setMasterPassword');
 }
 
 function openMasterPasswordModal() {
     if (masterPasswordHash) {
-        masterPasswordModalTitle.textContent = '管理主密码';
+        masterPasswordModalTitle.textContent = chrome.i18n.getMessage('masterPasswordManageTitle');
         masterPasswordStatus.className = 'master-password-status has-password';
-        masterPasswordStatus.innerHTML = '✓ 已设置主密码 - 可修改或移除';
+        masterPasswordStatus.innerHTML = chrome.i18n.getMessage('masterPasswordSet');
         currentMasterPasswordInput.required = true;
         removeMasterPasswordBtn.style.display = 'block';
     } else {
-        masterPasswordModalTitle.textContent = '设置主密码';
+        masterPasswordModalTitle.textContent = chrome.i18n.getMessage('masterPasswordTitle');
         masterPasswordStatus.className = 'master-password-status no-password';
-        masterPasswordStatus.innerHTML = '⚠️ 尚未设置主密码';
+        masterPasswordStatus.innerHTML = chrome.i18n.getMessage('masterPasswordNotSet');
         currentMasterPasswordInput.required = false;
         removeMasterPasswordBtn.style.display = 'none';
     }
@@ -367,25 +392,25 @@ async function handleMasterPasswordSave(e) {
     const newPwd = newMasterPasswordInput.value;
     const confirm = confirmMasterPasswordInput.value;
 
-    if (newPwd !== confirm) return showToast('两次输入不一致');
-    if (newPwd.length < 6) return showToast('主密码至少 6 个字符');
-    if (masterPasswordHash && current !== masterPasswordHash) return showToast('当前主密码不正确');
+    if (newPwd !== confirm) return showToast(chrome.i18n.getMessage('passwordMismatch'));
+    if (newPwd.length < 6) return showToast(chrome.i18n.getMessage('passwordTooShort'));
+    if (masterPasswordHash && current !== masterPasswordHash) return showToast(chrome.i18n.getMessage('currentPasswordIncorrect'));
 
     await chrome.storage.local.set({masterPassword: newPwd});
     masterPasswordHash = newPwd;
     updateMasterPasswordButton();
-    showToast('主密码设置成功');
+    showToast(chrome.i18n.getMessage('masterPasswordSaved'));
     closeMasterPasswordModal();
 }
 
 async function handleRemoveMasterPassword() {
     const current = currentMasterPasswordInput.value;
-    if (!current || current !== masterPasswordHash) return showToast('当前主密码不正确');
-    if (!confirm('确定要移除主密码吗？')) return;
+    if (!current || current !== masterPasswordHash) return showToast(chrome.i18n.getMessage('currentPasswordIncorrect'));
+    if (!confirm(chrome.i18n.getMessage('confirmRemoveMasterPassword'))) return;
     await chrome.storage.local.remove('masterPassword');
     masterPasswordHash = null;
     updateMasterPasswordButton();
-    showToast('主密码已移除');
+    showToast(chrome.i18n.getMessage('masterPasswordRemoved'));
     closeMasterPasswordModal();
 }
 
@@ -410,5 +435,5 @@ async function autoLogin(id) {
             chrome.tabs.onUpdated.removeListener(listener);
         }
     });
-    showToast('正在跳转到登录页面...');
+    showToast(chrome.i18n.getMessage('navigatingToLogin'));
 }

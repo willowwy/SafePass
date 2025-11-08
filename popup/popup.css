@@ -215,6 +215,27 @@ header h1 {
   background: #064232;
 }
 
+/* Master password status box */
+.master-password-status {
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.master-password-status.has-password {
+  background: #E8F5E9;
+  color: #2E7D32;
+  border: 1px solid #81C784;
+}
+
+.master-password-status.no-password {
+  background: #FFF3E0;
+  color: #E65100;
+  border: 1px solid #FFB74D;
+}
+
 /* Modal */
 .modal {
   display: none;
@@ -249,6 +270,13 @@ header h1 {
 
 .form-group {
   margin-bottom: 12px;
+}
+
+/* Divider for separating form sections */
+.form-group-divider {
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #E0E0E0;
 }
 
 .form-group label {

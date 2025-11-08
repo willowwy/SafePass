@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "SafePass",
+  "name": "__MSG_appName__",
   "version": "1.0.0",
-  "description": "本地密码管理器，自动保存和填充密码",
+  "description": "__MSG_appDescription__",
+  "default_locale": "en",
 
   "permissions": [
     "storage",

@@ -1,0 +1,206 @@
+{
+  "appName": {
+    "message": "SafePass"
+  },
+  "appDescription": {
+    "message": "A secure local password manager"
+  },
+  "searchPlaceholder": {
+    "message": "Search websites..."
+  },
+  "addPassword": {
+    "message": "+ Add Password Manually"
+  },
+  "exportPasswords": {
+    "message": "⇧ Export"
+  },
+  "importPasswords": {
+    "message": "⇩ Import"
+  },
+  "login": {
+    "message": "Login"
+  },
+  "delete": {
+    "message": "Delete"
+  },
+  "noPasswordsYet": {
+    "message": "No passwords saved yet"
+  },
+  "autoSaveHint": {
+    "message": "You'll be asked to save when logging into websites"
+  },
+  "addPasswordTitle": {
+    "message": "Add Password"
+  },
+  "editPasswordTitle": {
+    "message": "Edit Password"
+  },
+  "website": {
+    "message": "Website"
+  },
+  "websitePlaceholder": {
+    "message": "https://example.com"
+  },
+  "loginUrl": {
+    "message": "Login Page"
+  },
+  "loginUrlPlaceholder": {
+    "message": "https://example.com/login"
+  },
+  "loginUrlHint": {
+    "message": "Leave blank to use website URL"
+  },
+  "username": {
+    "message": "Username"
+  },
+  "usernamePlaceholder": {
+    "message": "user@email.com"
+  },
+  "password": {
+    "message": "Password"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "masterPassword": {
+    "message": "Master Password"
+  },
+  "setMasterPassword": {
+    "message": "Set Master Password"
+  },
+  "manageMasterPassword": {
+    "message": "\uD83D\uDD12 Manage Master Password"
+  },
+  "masterPasswordTitle": {
+    "message": "Set Master Password"
+  },
+  "masterPasswordManageTitle": {
+    "message": "Manage Master Password"
+  },
+  "masterPasswordSet": {
+    "message": "✅ Master password is set - You can modify or remove it"
+  },
+  "masterPasswordNotSet": {
+    "message": "⚠️ No master password set yet"
+  },
+  "currentMasterPassword": {
+    "message": "Current Master Password"
+  },
+  "currentMasterPasswordPlaceholder": {
+    "message": "Enter master password (if set)"
+  },
+  "newMasterPassword": {
+    "message": "New Master Password"
+  },
+  "newMasterPasswordPlaceholder": {
+    "message": "Enter new master password"
+  },
+  "confirmMasterPassword": {
+    "message": "Confirm Master Password"
+  },
+  "confirmMasterPasswordPlaceholder": {
+    "message": "Enter master password again"
+  },
+  "removeMasterPassword": {
+    "message": "Remove Master Password"
+  },
+  "passwordDeleted": {
+    "message": "Password deleted"
+  },
+  "passwordCopied": {
+    "message": "Password copied to clipboard"
+  },
+  "navigatingToLogin": {
+    "message": "Navigating to login page..."
+  },
+  "exportCancelled": {
+    "message": "Export cancelled"
+  },
+  "masterPasswordIncorrect": {
+    "message": "Master password incorrect"
+  },
+  "noPasswordsToExport": {
+    "message": "No passwords to export"
+  },
+  "exportSuccess": {
+    "message": "Successfully exported {count} passwords"
+  },
+  "exportFailed": {
+    "message": "Export failed, please try again"
+  },
+  "noValidData": {
+    "message": "No valid data in file"
+  },
+  "importConfirm": {
+    "message": "Found {count} passwords\n\nClick OK to merge with existing passwords\nClick Cancel to replace all existing passwords"
+  },
+  "importSuccess": {
+    "message": "Imported {count} new passwords"
+  },
+  "importFailed": {
+    "message": "Import failed, please check file format"
+  },
+  "passwordMismatch": {
+    "message": "Passwords do not match"
+  },
+  "passwordTooShort": {
+    "message": "Master password must be at least 6 characters"
+  },
+  "enterCurrentPassword": {
+    "message": "Please enter current master password"
+  },
+  "currentPasswordIncorrect": {
+    "message": "Current master password incorrect"
+  },
+  "masterPasswordSaved": {
+    "message": "Master password saved successfully"
+  },
+  "saveFailed": {
+    "message": "Save failed, please try again"
+  },
+  "enterCurrentToRemove": {
+    "message": "Please enter current master password to confirm"
+  },
+  "confirmRemoveMasterPassword": {
+    "message": "Are you sure you want to remove master password?\n\nYour password data will no longer be protected by master password.\n(Note: Current version passwords are not encrypted, removing master password won't affect saved passwords)"
+  },
+  "masterPasswordRemoved": {
+    "message": "Master password removed"
+  },
+  "removeFailed": {
+    "message": "Remove failed, please try again"
+  },
+  "autoFilledCredentials": {
+    "message": "Auto-filled credentials"
+  },
+  "autoFilledPassword": {
+    "message": "Auto-filled password"
+  },
+  "saveNewAccount": {
+    "message": "Save new account?"
+  },
+  "updatePassword": {
+    "message": "Update password?"
+  },
+  "savePasswordFor": {
+    "message": "Save password for <strong>{username}</strong> to password manager"
+  },
+  "passwordChangedFor": {
+    "message": "Password changed detected for <strong>{username}</strong>"
+  },
+  "update": {
+    "message": "Update"
+  },
+  "passwordSaved": {
+    "message": "Password saved"
+  },
+  "passwordUpdated": {
+    "message": "Password updated"
+  },
+  "enterMasterPasswordToExport": {
+    "message": "Enter master password to export password data:"
+  }
+}

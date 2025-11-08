@@ -361,11 +361,11 @@ function showSavePrompt(url, loginUrl, username, password, isNewAccount = true, 
   prompt.id = 'password-manager-prompt';
 
   // Different UI for new account vs update password
-  const title = isNewAccount ? '保存新账户？' : '更新密码？';
+  const title = isNewAccount ? chrome.i18n.getMessage('saveNewAccount') : chrome.i18n.getMessage('updatePassword');
   const message = isNewAccount
-    ? `为 <strong>${escapeHtml(username)}</strong> 保存密码到密码管理器`
-    : `检测到 <strong>${escapeHtml(username)}</strong> 的密码已更改`;
-  const buttonText = isNewAccount ? '保存' : '更新';
+    ? chrome.i18n.getMessage('savePasswordFor').replace('{username}', escapeHtml(username))
+    : chrome.i18n.getMessage('passwordChangedFor').replace('{username}', escapeHtml(username));
+  const buttonText = isNewAccount ? chrome.i18n.getMessage('save') : chrome.i18n.getMessage('update');
   const buttonColor = isNewAccount ? '#D75A8E' : '#4CAF50';
 
   prompt.innerHTML = `
@@ -430,7 +430,7 @@ function showSavePrompt(url, loginUrl, username, password, isNewAccount = true, 
           font-size: 13px;
           cursor: pointer;
           transition: background 0.2s;
-        ">取消</button>
+        ">${chrome.i18n.getMessage('cancel')}</button>
       </div>
     </div>
   `;
@@ -462,7 +462,7 @@ function showSavePrompt(url, loginUrl, username, password, isNewAccount = true, 
     await safeSendMessage({ action: 'clearPendingPassword' });
 
     // Show appropriate success message
-    const successMessage = isNewAccount ? '密码已保存' : '密码已更新';
+    const successMessage = isNewAccount ? chrome.i18n.getMessage('passwordSaved') : chrome.i18n.getMessage('passwordUpdated');
     showToast(successMessage);
 
     prompt.remove();
@@ -505,7 +505,7 @@ async function savePassword(url, loginUrl, username, password) {
   });
 
   if (response.success) {
-    showToast('密码已保存');
+    showToast(chrome.i18n.getMessage('passwordSaved'));
   } else {
     console.error('Failed to save password:', response.error);
   }
