@@ -8,38 +8,43 @@
 </head>
 <body>
   <div class="container">
+    <!-- Header -->
     <header>
-      <h1>密码管理器</h1>
+      <h1>SafePass</h1>
     </header>
 
+    <!-- Scrollable content area -->
     <div class="content">
-      <!-- 搜索框 -->
+      <!-- Search box -->
       <div class="search-box">
         <input type="text" id="searchInput" placeholder="搜索网站...">
       </div>
 
-      <!-- 密码列表 -->
+      <!-- Password list (only this section scrolls) -->
       <div class="password-list" id="passwordList">
-        <!-- Content loaded by JavaScript -->
+        <!-- Password items dynamically loaded by JS -->
       </div>
+    </div>
 
-      <!-- 添加按钮 -->
+    <!-- Fixed bottom action bar -->
+    <div class="fixed-actions">
+      <!-- Add password button -->
       <button class="add-btn" id="addBtn">+ 手动添加密码</button>
 
-      <!-- 导出/导入按钮 -->
+      <!-- Import / Export buttons -->
       <div class="import-export-container">
         <button class="action-btn export-btn" id="exportBtn">导出密码</button>
         <button class="action-btn import-btn" id="importBtn">导入密码</button>
       </div>
       <input type="file" id="importFileInput" accept=".csv" style="display: none;">
 
-      <!-- 主密码设置按钮 -->
+      <!-- Master password button -->
       <button class="action-btn master-password-btn" id="masterPasswordBtn">
         <span id="masterPasswordBtnText">设置主密码</span>
       </button>
     </div>
 
-    <!-- 添加/编辑表单（默认隐藏） -->
+    <!-- Add/Edit Password Modal -->
     <div class="modal" id="modal">
       <div class="modal-content">
         <h2 id="modalTitle">添加密码</h2>
@@ -69,13 +74,13 @@
       </div>
     </div>
 
-    <!-- 主密码设置模态框 -->
+    <!-- Master Password Modal -->
     <div class="modal" id="masterPasswordModal">
       <div class="modal-content">
         <h2 id="masterPasswordModalTitle">设置主密码</h2>
 
         <div id="masterPasswordStatus" class="master-password-status">
-          <!-- 显示当前主密码状态 -->
+          <!-- Current master password status -->
         </div>
 
         <form id="masterPasswordForm">
