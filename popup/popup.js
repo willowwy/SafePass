@@ -9,7 +9,6 @@ let masterPasswordCancelBtn, removeMasterPasswordBtn;
 let menuIcon, menuDropdown;
 
 let passwords = [];
-let editingId = null;
 let masterPasswordHash = null;
 
 // Initialize i18n
@@ -114,18 +113,18 @@ function setupEventListeners() {
         if (e.target === masterPasswordModal) closeMasterPasswordModal();
     });
 
-    passwordList.addEventListener('click', e => {
+    passwordList.addEventListener('click', async (e) => {
         const item = e.target.closest('.password-item');
         if (!item) return;
 
         if (e.target.classList.contains('delete-btn')) {
             e.stopPropagation();
-            deletePassword(e.target.dataset.id);
+            await deletePassword(e.target.dataset.url, e.target.dataset.username);
         } else if (e.target.classList.contains('login-btn')) {
             e.stopPropagation();
-            autoLogin(e.target.dataset.id);
+            await autoLogin(e.target.dataset.url, e.target.dataset.username);
         } else {
-            copyToClipboard(item.dataset.id);
+            await copyToClipboard(item.dataset.url, item.dataset.username);
         }
     });
 }
@@ -154,13 +153,14 @@ function renderPasswordList(list) {
         const username = item.username ?? '';
         const div = document.createElement('div');
         div.className = 'password-item';
-        div.dataset.id = item.id;
+        div.dataset.url = url;
+        div.dataset.username = username;
         div.innerHTML = `
       <div class="password-item-header">
         <div class="website-name">${getDomainFromUrl(url)}</div>
         <div class="item-actions">
-          <button class="login-btn" data-id="${item.id}">${chrome.i18n.getMessage('login')}</button>
-          <button class="delete-btn" data-id="${item.id}">${chrome.i18n.getMessage('delete')}</button>
+          <button class="login-btn" data-url="${url}" data-username="${username}">${chrome.i18n.getMessage('login')}</button>
+          <button class="delete-btn" data-url="${url}" data-username="${username}">${chrome.i18n.getMessage('delete')}</button>
         </div>
       </div>
       <div class="username">${username}</div>`;
@@ -208,11 +208,9 @@ function openModal(password = null) {
         loginUrlInput.value = password.loginUrl ?? '';
         usernameInput.value = password.username ?? '';
         passwordInput.value = password.password ?? '';
-        editingId = password.id ?? null;
     } else {
         modalTitle.textContent = chrome.i18n.getMessage('addPasswordTitle');
         passwordForm.reset();
-        editingId = null;
     }
     modal.classList.add('active');
 }
@@ -220,41 +218,49 @@ function openModal(password = null) {
 function closeModal() {
     modal.classList.remove('active');
     passwordForm.reset();
-    editingId = null;
 }
 
-// Save
+// Save password (update if url+username exists, otherwise add new)
 async function handleSave(e) {
     e.preventDefault();
+    const url = websiteInput.value.trim();
+    const username = usernameInput.value.trim();
+
     const data = {
-        id: editingId || generateId(),
-        url: websiteInput.value.trim(),
-        loginUrl: loginUrlInput.value.trim() || websiteInput.value.trim(),
-        username: usernameInput.value.trim(),
+        id: generateId(),
+        url: url,
+        loginUrl: loginUrlInput.value.trim() || url,
+        username: username,
         password: passwordInput.value,
         createdAt: new Date().toISOString()
     };
 
-    const index = passwords.findIndex(p => p.id === editingId);
-    if (index !== -1) passwords[index] = data;
-    else passwords.push(data);
+    // Find existing password with same url+username
+    const index = passwords.findIndex(p => p.url === url && p.username === username);
+    if (index !== -1) {
+        // Update existing, keep original createdAt
+        data.createdAt = passwords[index].createdAt;
+        passwords[index] = data;
+    } else {
+        passwords.push(data);
+    }
 
     await chrome.storage.local.set({passwords});
     renderPasswordList(passwords);
     closeModal();
 }
 
-// Delete
-async function deletePassword(id) {
-    passwords = passwords.filter(p => p.id !== id);
+// Delete password by url + username
+async function deletePassword(url, username) {
+    passwords = passwords.filter(p => !(p.url === url && p.username === username));
     await chrome.storage.local.set({passwords});
     renderPasswordList(passwords);
     showToast(chrome.i18n.getMessage('passwordDeleted'));
 }
 
-// Copy
-async function copyToClipboard(id) {
-    const p = passwords.find(p => p.id === id);
+// Copy password to clipboard
+async function copyToClipboard(url, username) {
+    const p = passwords.find(p => p.url === url && p.username === username);
     if (!p) return;
     await navigator.clipboard.writeText(p.password);
     showToast(chrome.i18n.getMessage('passwordCopied'));
@@ -275,9 +281,9 @@ function showToast(msg) {
     setTimeout(() => toast.remove(), 2000);
 }
 
-// ID generator
+// ID generator (timestamp only)
 function generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).slice(2);
+    return Date.now().toString(36);
 }
 
 // Export
@@ -291,15 +297,14 @@ async function exportPasswords() {
     const {passwords} = await chrome.storage.local.get(['passwords']);
     if (!passwords?.length) return showToast(chrome.i18n.getMessage('noPasswordsToExport'));
 
-    const headers = ['Website', 'Username', 'Password', 'Created', 'ID'];
+    const headers = ['Website', 'Username', 'Password', 'Created'];
     const rows = [headers.join(',')];
     passwords.forEach(p => {
         rows.push([
             escapeCSV(p.url ?? ''),
             escapeCSV(p.username ?? ''),
             escapeCSV(p.password ?? ''),
-            escapeCSV(p.createdAt ?? ''),
-            escapeCSV(p.id ?? '')
+            escapeCSV(p.createdAt ?? '')
         ].join(','));
     });
 
@@ -318,7 +323,7 @@ function escapeCSV(str) {
     return str;
 }
 
-// Import
+// Import passwords with merge logic
 async function handleImport(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -328,28 +333,84 @@ async function handleImport(e) {
     if (!imported.length) return showToast(chrome.i18n.getMessage('noValidData'));
 
     const merge = confirm(chrome.i18n.getMessage('importConfirm').replace('{count}', imported.length));
-    let finalPasswords = imported;
+    let finalPasswords;
+
     if (merge) {
         const {passwords: existing = []} = await chrome.storage.local.get(['passwords']);
-        const ids = new Set(existing.map(p => p.id));
-        const newOnes = imported.filter(p => !ids.has(p.id));
-        finalPasswords = [...existing, ...newOnes];
-        showToast(chrome.i18n.getMessage('importSuccess').replace('{count}', newOnes.length));
+        const map = new Map();
+
+        // Add existing passwords to map
+        existing.forEach(p => {
+            map.set(`${p.url}|${p.username}`, p);
+        });
+
+        // Merge imported passwords (keep newer based on timestamp)
+        imported.forEach(p => {
+            const key = `${p.url}|${p.username}`;
+            const old = map.get(key);
+            if (!old || new Date(p.createdAt) > new Date(old.createdAt)) {
+                map.set(key, p);
+            }
+        });
+
+        finalPasswords = Array.from(map.values());
+        showToast(chrome.i18n.getMessage('importSuccess').replace('{count}', imported.length));
+    } else {
+        finalPasswords = imported;
     }
+
     await chrome.storage.local.set({passwords: finalPasswords});
     passwords = finalPasswords;
     renderPasswordList(passwords);
 }
 
+// Parse CSV file
 function parseCSV(text) {
     const lines = text.trim().split('\n').slice(1);
-    return lines.map(line => line.split(',')).map(f => ({
-        url: f[0] ?? '',
-        username: f[1] ?? '',
-        password: f[2] ?? '',
-        createdAt: f[3] ?? new Date().toISOString(),
-        id: f[4] ?? generateId()
-    })).filter(p => p.url && p.username && p.password);
+    return lines.map(line => {
+        const fields = parseCSVLine(line);
+        return {
+            url: fields[0] ?? '',
+            username: fields[1] ?? '',
+            password: fields[2] ?? '',
+            createdAt: fields[3] ?? new Date().toISOString(),
+            id: generateId()
+        };
+    }).filter(p => p.url && p.username && p.password);
+}
+
+// Proper CSV line parser that handles quoted fields
+function parseCSVLine(line) {
+    const fields = [];
+    let currentField = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                // Escaped quote ("")
+                currentField += '"';
+                i++; // Skip next quote
+            } else {
+                // Toggle quote mode
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            // Field separator
+            fields.push(currentField);
+            currentField = '';
+        } else {
+            currentField += char;
+        }
+    }
+
+    // Add last field
+    fields.push(currentField);
+
+    return fields;
 }
 
 // Master password
@@ -415,8 +476,8 @@ async function handleRemoveMasterPassword() {
 }
 
 // Auto login
-async function autoLogin(id) {
-    const p = passwords.find(p => p.id === id);
+async function autoLogin(url, username) {
+    const p = passwords.find(p => p.url === url && p.username === username);
     if (!p) return;
     const targetUrl = p.loginUrl || p.url;
     const [tab] = await chrome.tabs.query({active: true, currentWindow: true});

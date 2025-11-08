@@ -1,17 +1,24 @@
 # SafePass - Local Password Manager
 
-A secure and convenient browser password management extension with auto-save, smart autofill, and one-click login features.
+A secure and convenient browser password management extension with smart autofill, intelligent merge, and one-click login features.
 
 ## Key Features
 
-- **Smart Password Saving**: Automatically detects login forms and intelligently identifies new account registrations and password updates
-- **Multi-Account Management**: Save and manage multiple accounts per website for easy switching
-- **One-Click Login**: Click the "Login" button to automatically navigate to the website and fill in passwords
-- **Auto-Fill**: Smart recognition and filling of username/email and password fields
-- **Password Import/Export**: Backup and restore with CSV format support
-- **Master Password Protection**: Optional master password to protect password exports
-- **Beautiful Chinese Interface**: Clean and intuitive password management experience
-- **AJAX Form Support**: Compatible with dynamic login forms on modern websites
+### Core Innovations
+
+- **🎯 Smart Account Recognition**: Identifies accounts by `URL + Username` combination, automatically prevents duplicates
+- **🔄 Intelligent Import Merge**: Automatically keeps the newest password based on timestamp when importing duplicates
+- **⚡ AJAX Form Support**: Advanced detection for dynamic login forms on modern single-page applications
+- **🌐 Multi-language i18n**: Automatically switches between English/Chinese based on browser language
+- **🔐 One-Click Login**: Auto-navigate to login page and fill credentials with a single click
+
+### Standard Features
+
+- **Auto-Save**: Detects login forms and intelligently identifies new registrations vs password updates
+- **Multi-Account Support**: Manage multiple accounts per website
+- **Auto-Fill Dropdown**: Quick account selection from detected input fields
+- **Master Password Protection**: Optional protection for password exports
+- **CSV Import/Export**: Simple backup and restore with proper CSV escaping
 
 ## Installation
 
@@ -29,102 +36,37 @@ A secure and convenient browser password management extension with auto-save, sm
 
 5. Installation complete! The extension icon will appear in the toolbar
 
-## User Guide
+## Usage
 
-### Save Password
+### Automatic Workflow
 
-1. Visit any website login page
-2. Enter username and password
-3. Click the login button
-4. A save prompt will appear:
-   - **New Account**: Shows "Save new account?"
-   - **Password Update**: Shows "Update password?" with old/new password comparison
-5. Click "Save" or "Update" to complete
+1. **Login anywhere** → Extension detects and prompts to save
+2. **Return to site** → Auto-fill dropdown appears on input fields
+3. **Manage via popup** → Search, copy, delete, or one-click login
 
-**Note**: No prompt appears if you login with the same saved credentials.
+### Import/Export
 
-### Auto-Fill
+**Export**: Click menu (☰) → Export → Enter master password (if set) → Download CSV
 
-1. Visit a website where you have saved passwords
-2. Click on the username or password input field
-3. Select an account from the dropdown list
-4. Auto-fill complete
-
-### One-Click Login
-
-1. Open the password manager (click extension icon)
-2. Find the website you want to login to
-3. Click the "Login" button
-4. Automatically navigate to the login page and fill in password
-5. Manually click the website's login button to complete
-
-### Manage Passwords
-
-Click the extension icon to open the password manager, where you can:
-
-- **View Passwords**: Browse all saved passwords
-- **Search**: Use the search box to quickly find passwords
-- **Copy Password**: Click a password item to copy to clipboard
-- **Delete Password**: Click the "Delete" button to remove unwanted passwords
-- **Manual Add**: Click the "+ Add Password Manually" button
-
-### Set Master Password
-
-1. Click the extension icon to open the password manager
-2. Click the "Set Master Password" button at the bottom
-3. Enter and confirm your master password (minimum 6 characters)
-4. Click "Save"
-
-The master password protects the password export function to ensure data security.
-
-### Export/Import Passwords
-
-#### Export
-
-1. Click the "Export Passwords" button
-2. If a master password is set, you'll need to enter it for verification
-3. Download CSV file: `passwords-backup-YYYY-MM-DD.csv`
-
-#### Import
-
-1. Click the "Import Passwords" button
-2. Select a previously exported CSV file
-3. Choose import strategy:
-   - **Merge**: Only add new passwords (recommended)
-   - **Replace**: Clear existing passwords and import
+**Import**: Click menu (☰) → Import → Select CSV file
+- **Merge mode**: Automatically keeps newest password for duplicate `URL + Username` pairs based on timestamp
+- **Replace mode**: Clear all and import fresh
 
 **CSV Format**:
+```csv
+Website,Username,Password,Created
+https://example.com,user@email.com,mypassword,2025-01-01T00:00:00.000Z
 ```
-Website,Username,Password,Created Date,ID
-https://example.com,user@email.com,mypassword,2025-01-01T00:00:00.000Z,abc123
-```
 
-## Data Structure
+## Security
 
-Each password entry contains:
-- `url`: Website homepage URL (for domain matching)
-- `loginUrl`: Login page URL (for one-click login)
-- `username`: Username or email
-- `password`: Password
-- `createdAt`: Creation time
-- `id`: Unique identifier
+**100% Local Storage**: All data stored in browser local storage, never uploaded anywhere.
 
-## Security Notes
+- ✅ Completely offline, no network transmission
+- ✅ Master password protects exports
+- ⚠️ Passwords stored unencrypted in browser (plaintext)
 
-**Local Storage**: All password data is stored entirely in the browser's local storage and is never uploaded to any server, ensuring data privacy.
-
-**Current Security Status**:
-- ✅ Completely offline data, privacy guaranteed
-- ✅ Master password protects export function
-- ⚠️ Passwords are stored in plain text in browser local storage (unencrypted)
-
-**Security Recommendations**:
-- Ensure your computer and browser account are secure
-- Regularly backup password data
-- Do not use on public or shared computers
-- Enable two-factor authentication for important accounts
-
-Since all data is stored locally, there's no concern about network transmission or server breach risks. However, please properly safeguard your device access.
+**Recommendations**: Use on trusted devices only, enable browser sync encryption if needed.
 
 ## Project Structure
 
@@ -139,6 +81,9 @@ SafePass/
 │   └── background.js
 ├── content/               # Content script
 │   └── content.js
+├── _locales/              # i18n translations
+│   ├── en/
+│   └── zh_CN/
 └── icons/                 # Icon resources
 ```
 
